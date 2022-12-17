@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 from grand.io.root_trees import *
-from trace_functions import *
+from electronic_chain.trace_functions import *
 
-from XDU_electronic_chain.LNA import LNA_get
-from XDU_electronic_chain.antenna_effective_length import CEL
-from XDU_electronic_chain.galactic_noise import gala
-from XDU_electronic_chain.filters import filter_get
+from electronic_chain.XDU_electronic_chain.LNA import LNA_get
+from electronic_chain.XDU_electronic_chain.antenna_effective_length import CEL
+from electronic_chain.XDU_electronic_chain.galactic_noise import gala
+from electronic_chain.XDU_electronic_chain.filters import filter_get
 
 
 def main():
