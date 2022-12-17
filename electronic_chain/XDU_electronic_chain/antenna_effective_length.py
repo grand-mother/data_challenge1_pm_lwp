@@ -1,7 +1,11 @@
 import h5py
 from scipy import interpolate
-from functions import *
+from electronic_chain.XDU_electronic_chain.functions import *
+import electronic_chain.XDU_electronic_chain.config as config
+from functools import lru_cache
 
+# This decorator stores the function result in memory, so the function is called only once, and next calls just read the result from memory
+@lru_cache(maxsize=1)
 def CEL(e_theta, e_phi, N, f0, unit):
     # This Python file uses the following encoding: utf-8
 
@@ -20,7 +24,7 @@ def CEL(e_theta, e_phi, N, f0, unit):
     # s11_complex is the antenna test data
 
     # Complex electric field 30-250MHz
-    REfile = ".//Complex_RE.mat"
+    REfile = config.XDU_files_path+"/Complex_RE.mat"
     RE = h5py.File(REfile, 'r')
     RE_zb = np.transpose(RE['data_rE_ALL'])
     re_complex = RE_zb.view('complex')
@@ -33,7 +37,7 @@ def CEL(e_theta, e_phi, N, f0, unit):
     s11_complex = np.zeros((effective, 3), dtype=complex)  # 3 ports
     for p in range(3):
         str_p = str(p + 1)
-        filename = ".//antennaVSWR//" + str_p + ".s1p"
+        filename = config.XDU_files_path+"/antennaVSWR/" + str_p + ".s1p"
         freq = np.loadtxt(filename, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             re = np.loadtxt(filename, usecols=1)

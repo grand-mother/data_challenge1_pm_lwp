@@ -1,13 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
-
-
-
 
 def get_tabulated(filename):
-    print("loading")
     f, R, X, theta, phi, lefft, leffp, phaset, phasep = np.load(filename)
-    print("loaded")
     n_f = f.shape[0]
     n_theta = len(np.unique(theta[0, :]))
     n_phi = int(R.shape[1] / n_theta)

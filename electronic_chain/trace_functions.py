@@ -1,7 +1,7 @@
 import numpy as np
 import math
 import random
-from electronic_chain.XDU_electronic_chain import ifftget
+from electronic_chain.XDU_electronic_chain.functions import ifftget
 from electronic_chain.XDU_electronic_chain.efield2voltage import efield2voltage
 
 def adjust_traces(ex, ey, ez, Ts):

@@ -1,17 +1,7 @@
-from functions import *
-from antenna_effective_length import CEL
+from electronic_chain.XDU_electronic_chain.antenna_effective_length import CEL
+from electronic_chain.XDU_electronic_chain.functions import *
 
 def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calculation_function=CEL):
-    # [Lce_complex, antennas11_complex_short] = antenna_model_calculation_function(theta, phi, len(ex), 1.0)
-    # np.save("Lce_complex", Lce_complex)
-    # np.save("antennas11_complex_short", antennas11_complex_short)
-    # exit()
-    Lce_complex = np.load("Lce_complex.npy")
-
-    # ======Open circuit voltage of air shower=================
-    Lcehang = Lce_complex.shape[0]
-    Lcelie = Lce_complex.shape[2]
-
     # ToDo: This should be gotten from the trace parameters
     Ts = dt
     fs = 1 / Ts * 1000  # sampling frequency, MHZ
@@ -19,6 +9,18 @@ def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calc
     f0 = fs / N  # base frequency, Frequency resolution
     f = np.arange(0, N) * f0  # frequency sequence
     f1 = f[0:int(N / 2) + 1]
+
+
+    [Lce_complex, antennas11_complex_short] = antenna_model_calculation_function(theta, phi, len(ex), f0, 1.0)
+    # np.save("Lce_complex", Lce_complex)
+    # np.save("antennas11_complex_short", antennas11_complex_short)
+    # exit()
+    # Lce_complex = np.load("Lce_complex.npy")
+
+    # ======Open circuit voltage of air shower=================
+    Lcehang = Lce_complex.shape[0]
+    Lcelie = Lce_complex.shape[2]
+
 
     Edata = np.stack([ex, ey, ez], axis=1)
     # print(N, f1, Edata.shape)

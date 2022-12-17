@@ -1,5 +1,6 @@
 import h5py
-from functions import *
+from electronic_chain.XDU_electronic_chain.functions import *
+import electronic_chain.XDU_electronic_chain.config as config
 import random
 
 # =========================================galacticnoise get=============================================
@@ -15,7 +16,7 @@ def gala(lst, N, f0, f1, M):
     # % ----------------------output - ---------------------------------- %
     # v_complex_double, galactic_v_time
 
-    GALAshowFile = ".//30_250galactic.mat"
+    GALAshowFile = config.XDU_files_path+"/30_250galactic.mat"
     GALAshow = h5py.File(GALAshowFile, 'r')
     GALApsd_dbm = np.transpose(GALAshow['psd_narrow_huatu'])
     GALApower_dbm = np.transpose(GALAshow['p_narrow_huatu'])

@@ -1,4 +1,5 @@
-from functions import *
+from electronic_chain.XDU_electronic_chain.functions import *
+import electronic_chain.XDU_electronic_chain.config as config
 from scipy import interpolate
 
 # ===============================================Filterparameter get====================================
@@ -29,8 +30,7 @@ def filter_get(N, f0, unit):
     for p in range(3):
         #  cable参数
         # str_p = str(p + 1)
-        # cable_Address = ".//data//cableparameter//" + str_p + ".s2p"
-        cable_Address = ".//cableparameter//cable.s2p"
+        cable_Address = config.XDU_files_path+"/cableparameter/cable.s2p"
         freq = np.loadtxt(cable_Address, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             res11 = np.loadtxt(cable_Address, usecols=1)
@@ -85,8 +85,7 @@ def filter_get(N, f0, unit):
     for p in range(3):
         #  filter parameter
         # str_p = str(p + 1)
-        # filter_Address = ".//data//filterparameter//" + str_p + ".s2p"
-        filter_Address = ".//filterparameter//1.s2p"
+        filter_Address = config.XDU_files_path+"/filterparameter/1.s2p"
         freq = np.loadtxt(filter_Address, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             res11 = np.loadtxt(filter_Address, usecols=1)

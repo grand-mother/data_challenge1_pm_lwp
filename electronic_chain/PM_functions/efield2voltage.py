@@ -1,4 +1,4 @@
-import readantennamodel as an
+import electronic_chain.PM_functions.readantennamodel as an
 
 # def efield2voltage_pm(ex, exy, ez, Zenith, Azimuth, N, dt, freqs):
 def efield2voltage_pm(ex, ey, ez, Zenith, Azimuth, dt, antenna_model):

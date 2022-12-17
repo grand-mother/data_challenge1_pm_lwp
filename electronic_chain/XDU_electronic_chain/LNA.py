@@ -1,4 +1,5 @@
-from functions import *
+from electronic_chain.XDU_electronic_chain.functions import *
+import electronic_chain.XDU_electronic_chain.config as config
 from scipy import interpolate
 from numpy.ma import log10, abs
 
@@ -37,7 +38,7 @@ def LNA_get(antennas11_complex_short, N, f0, unit):
     for p in range(3):
         #  LNA parameter
         str_p = str(p + 1)
-        LNA_Address = ".//LNASparameter//" + str_p + ".s2p"
+        LNA_Address = config.XDU_files_path+"/LNASparameter/" + str_p + ".s2p"
         freq = np.loadtxt(LNA_Address, usecols=0) / 1e6  # Hz to MHz
         if unit == 0:
             res11 = np.loadtxt(LNA_Address, usecols=1)
