@@ -48,8 +48,10 @@ def main():
 
         # e_theta = float(list1[5])
         # e_phi = float(list1[6])
-        e_theta = 180-tshower.shower_azimuth
-        e_phi = 180+tshower.shower_zenith
+        e_theta = 180-tshower.shower_zenith
+        e_phi = tshower.shower_azimuth-180
+        if e_theta<0: e_theta=360-e_theta
+        if e_phi<0: e_phi=360+e_phi
 
         print("theta is:", e_theta, "degree", tshower.shower_azimuth)
         print("phi is:", e_phi, "degree", tshower.shower_zenith)
