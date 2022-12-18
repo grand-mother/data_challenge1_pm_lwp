@@ -38,7 +38,8 @@ def main():
     # In this file antennas are misordered. This is the dictionary that gives ROOT file trace number for given trace file number
     # trace_file_to_root = {95: 62, 94: 95, 93: 42, 92: 19, 91: 21, 90: 63, 89: 14, 88: 41, 87: 0, 86: 45, 85: 54, 84: 22, 83: 20, 82: 7, 81: 69, 80: 77, 79: 68, 78: 81, 77: 30, 76: 76, 75: 17, 74: 3, 73: 18, 72: 32, 71: 53, 70: 55, 69: 4, 68: 90, 67: 82, 66: 40, 65: 12, 64: 93, 63: 13, 62: 38, 61: 44, 60: 84, 59: 15, 58: 70, 57: 58, 56: 75, 55: 78, 54: 23, 53: 8, 52: 34, 51: 29, 50: 9, 49: 37, 48: 59, 47: 79, 46: 16, 45: 83, 44: 86, 43: 47, 42: 36, 41: 92, 40: 51, 39: 66, 38: 49, 37: 31, 36: 57, 35: 6, 34: 50, 33: 61, 32: 56, 31: 89, 30: 48, 29: 65, 28: 67, 27: 64, 26: 71, 25: 28, 24: 52, 23: 27, 22: 25, 21: 91, 20: 35, 19: 85, 18: 33, 17: 87, 16: 24, 15: 88, 14: 46, 13: 39, 12: 73, 11: 72, 10: 5, 9: 94, 8: 26, 7: 43, 6: 11, 5: 60, 4: 80, 3: 74, 2: 10, 1: 1, 0: 2}
 
-    tefield1 = EfieldEventTree(out_root_file)
+    # tefield1 = EfieldEventTree(out_root_file)
+    tefield1 = VoltageEventTree(out_root_file)
 
     for i in range(tshower.get_entries()):
         tefield.get_entry(i)
