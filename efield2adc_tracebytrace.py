@@ -93,7 +93,9 @@ def main():
         tvoltage.trace_x.clear()
         tvoltage.trace_y.clear()
         tvoltage.trace_z.clear()
+        print("preloop")
         for trace_num in range(len(tefield.trace_x)):
+            print("it start")
             # This is for Coarse2.root only, with manually restructured order of antennas
             # Works with Stshp_LWP_S23d_Proton_5.6_87.9_290.0_1 and Coarse2.root that I've put there
             # Reorderring was needed for sane comparison with the original electronic chain results
@@ -111,14 +113,18 @@ def main():
 
             ex, ey, ez = adjust_traces(ex, ey, ez, Ts)
 
-            adc0, adc1, adc2, v_t, v_f = efield_to_adc(ex, ey, ez, e_phi, e_theta, antenna_model, noise_model, electronic_chain, return_voltages=True)
+            adc0, adc1, adc2, v_t, v_f = efield_trace_to_adc(ex, ey, ez, e_phi, e_theta, antenna_model, noise_model, electronic_chain, return_voltages=True)
 
             tvoltage.trace_x.append(v_t[-1][:,0].astype(np.float32).tolist())
             tvoltage.trace_y.append(v_t[-1][:,1].astype(np.float32).tolist())
             tvoltage.trace_z.append(v_t[-1][:,2].astype(np.float32).tolist())
+            print("it end")
 
+        print("filling")
         tvoltage.fill()
+        print("writing")
         tvoltage.write()
+        print("wrote")
 
 
 if __name__ == '__main__':
