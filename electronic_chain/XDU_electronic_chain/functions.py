@@ -31,6 +31,9 @@ def fftget(data_ori, N, f1):
         data_fft[:, i] = fft(data_ori[:, i])
 
         data_fft_m[:, i] = abs(data_fft[:, i]) * 2 / N  # Amplitude
+        # ToDo: Is the line below a bug? Should't it be
+        # data_fft_m[0, i] = data_fft_m[0, i] / 2 ?
+        # This way x gets divided by 2 3 times, y 2 times, z 1 time...
         data_fft_m[0] = data_fft_m[0] / 2
 
         data_fft_m_single = data_fft_m[0: len(f1)]  # unilateral
@@ -39,6 +42,43 @@ def fftget(data_ori, N, f1):
         data_fft_p = np.mod(data_fft_p, 2 * 180)
         # data_fft_p_deg = np.rad2deg(data_fft_p)
         data_fft_p_single = data_fft_p[0: len(f1)]
+
+    return np.array(data_fft), np.array(data_fft_m_single), np.array(data_fft_p_single)
+
+# ================================================FFT get=============================================
+def fftgetn(data_ori, N, f1):
+    """1D FFT for n-dimensional data. Makes FFT over the last axis, assuming all previous are indices
+    Returns different first column of data_fft_m_single than fftget, due to a possible bug in fftget (look at the code)"""
+
+    # = == == == == This program is used as a subroutine to complete the FFT of data and generate parameters according to requirements == == == == =
+    #  ----------------------input- ---------------------------------- %
+    # % data_ori:time domain data, matrix form
+    # % show_flag:flag of showing picture
+    # % N:number of FFT points
+    # % f1:Unilateral frequency
+    # % ----------------------output - ---------------------------------- %
+    # % data_fft:Frequency domain complex data
+    # % data_fft_m_single:Frequency domain amplitude unilateral spectrum
+    # % data_fft:Frequency domain phase
+
+    # lienum = data_ori.shape[1]
+    # data_fft = np.zeros((*data_ori.shape[:-1],N), dtype=complex)
+    # data_fft_m = np.zeros((*data_ori.shape[:-1],N))
+    # data_fft_m_single = np.zeros((int(N/2), lienum))
+    # data_fft_p = np.zeros((int(N), lienum))
+    # data_fft_p_single = np.zeros((int(N/2), lienum))
+
+    data_fft = fft(data_ori)
+
+    data_fft_m = abs(data_fft) * 2 / N  # Amplitude
+    data_fft_m[...,0] = data_fft_m[..., 0] / 2
+
+    data_fft_m_single = data_fft_m[..., 0:len(f1)]  # unilateral
+
+    data_fft_p = np.angle(data_fft, deg=True)  # phase
+    data_fft_p = np.mod(data_fft_p, 2 * 180)
+    # data_fft_p_deg = np.rad2deg(data_fft_p)
+    data_fft_p_single = data_fft_p[..., 0:len(f1)]
 
     return np.array(data_fft), np.array(data_fft_m_single), np.array(data_fft_p_single)
 
@@ -89,6 +129,45 @@ def ifftget(data_ori, N, f1, true):
         data_ifft[:, i] = ifft(data_ori[:, i]).real
 
     return np.array(data_ifft), np.array(data_ori_m_single), np.array(data_ori_p_single)
+
+def ifftgetn(data_ori, N, f1, true):
+    """1D IFFT for n-dimensional data. Makes IFFT over the last axis, assuming all previous are indices"""
+
+
+    # %= == == == == This program is used as a subroutine to complete the Fourier change of data and generate parameters according to requirements == == == == =
+    # % ----------------------input - ---------------------------------- %
+    # % data_ori:Frequency domain data, complex numbers
+    # % true  1 indicates that the complex number is synthesized, that is, the amplitude is the real amplitude. 2 indicates that the complex number is obtained after Fourier transform;
+    # % N:number of FFT points
+    # % t:time sequence
+    # ns
+    # % ----------------------output - ---------------------------------- %
+    # % data_ifft :time domain data
+
+    # %= == == == == == == == == == == == == == == First draw the spectrum phase == == == == == ==
+    if true == 1:
+        data_ori_m = abs(data_ori)  # Amplitude
+        data_ori_m_single = data_ori_m[..., 0: len(f1)]  # unilateral
+
+        data_ori_p = np.angle(data_ori, deg=True)  # phase
+        data_ori_p = np.mod(data_ori_p, 2 * 180)
+        data_ori_p_single = data_ori_p[..., 0: len(f1)]
+
+    elif true == 2:
+        data_ori_m = abs(data_ori) * 2 / N
+        data_ori_m[...,0] = data_ori_m[..., 0] / 2
+
+        data_ori_m_single = data_ori_m[..., 0: len(f1)]  # double to single
+
+        data_ori_p = np.angle(data_ori, deg=True)  # phase
+        data_ori_p = np.mod(data_ori_p, 2 * 180)  # (-pi,pi) to (0,2pi)
+        data_ori_p_single = data_ori_p[..., 0: len(f1)]
+
+    # % % Time domain
+    data_ifft = ifft(data_ori).real
+
+    return np.array(data_ifft), np.array(data_ori_m_single), np.array(data_ori_p_single)
+
 #==================================interpolation=======================================
 def inter(data_complex_five,e_theta,e_phi):
     # This Python file uses the following encoding: utf-8
