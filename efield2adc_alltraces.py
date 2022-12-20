@@ -83,6 +83,8 @@ def main():
         # np.save("galactic_v_time", galactic_v_time)
         galactic_v_complex_double = np.load("galactic_v_complex_double.npy")
         galactic_v_time = np.load("galactic_v_time.npy")
+        galactic_v_complex_double = np.moveaxis(galactic_v_complex_double, 1, 2)
+        galactic_v_time = np.moveaxis(galactic_v_time, 1, 2)
         print("5")
         # =================== LNA=====================================================
         [rou1_complex, rou2_complex, rou3_complex] = LNA_get(antennas11_complex_short, N, f0, 1)
