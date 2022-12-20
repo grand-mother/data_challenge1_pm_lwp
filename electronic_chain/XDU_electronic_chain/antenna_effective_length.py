@@ -26,11 +26,13 @@ def CEL(e_theta, e_phi, N, f0, unit):
     # Complex electric field 30-250MHz
     REfile = config.XDU_files_path+"/Complex_RE.mat"
     RE = h5py.File(REfile, 'r')
+    # Transposing takes very long
     RE_zb = np.transpose(RE['data_rE_ALL'])
     re_complex = RE_zb.view('complex')
     f_radiation = np.transpose(RE['f_radiation'])  # mhz
     effective = max(f_radiation.shape[0], f_radiation.shape[1])
 
+    # Interpolation takes very long
     e_radiation = inter(re_complex, e_theta, e_phi)
 
     # 测试s1p
@@ -82,17 +84,19 @@ def CEL(e_theta, e_phi, N, f0, unit):
     f1 = f_radiation[0][0]
     f2 = f_radiation[0][-1]
 
-    print("3_4")
+    print("3_4", e_radiation.shape, np.moveaxis(e_radiation, 1, 2).shape, fenmu.shape)
 
     Lce_complex_short = np.zeros((effective, 3, 3), dtype=complex)
     Lce_complex_expansion = np.zeros((N, 3, 3), dtype=complex)
-    for i in range(3):  # Polarization i = 1, 2, 3 respectively represent xyz polarization
-        for p in range(3):
-            # Xyz polarization of a single port
-            Lce_complex_short[:, i, p] = e_radiation[:, p, i] / fenmu[:, p]
-            [f, Lce_complex_expansion[:, i, p]] = expan(N, f0, f1, f2, Lce_complex_short[:, i, p])
+    # for i in range(3):  # Polarization i = 1, 2, 3 respectively represent xyz polarization
+    #     for p in range(3):
+    #         # Xyz polarization of a single port
+    #         Lce_complex_short[:, i, p] = e_radiation[:, p, i] / fenmu[:, p]
+    #         [f, Lce_complex_expansion[:, i, p]] = expan(N, f0, f1, f2, Lce_complex_short[:, i, p])
 
-    print("3_5")
+    Lce_complex_short = e_radiation / fenmu[:, :, np.newaxis]
+
+    [f, Lce_complex_expansion] = expann(N, f0, f1, f2, Lce_complex_short)
 
     return Lce_complex_expansion, s11_complex
 
