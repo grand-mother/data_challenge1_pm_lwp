@@ -49,7 +49,14 @@ def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calc
     # a = Lce_complex[0] * E_shower_fft[..., 0, np.newaxis, :]
     # b = Lce_complex[0] * E_shower_fft[0, 0, :]
     # print(a[0][np.where(a[0]!=0)], b[np.where(b!=0)], np.all(a[0]==b))
-    Voc_shower_complex = Lce_complex[0] * E_shower_fft[..., 0, :] + Lce_complex[1] * E_shower_fft[..., 1, :] + Lce_complex[2] * E_shower_fft[..., 2, :]
+    # Voc_shower_complex = Lce_complex[0] * E_shower_fft[..., 0, :] + Lce_complex[1] * E_shower_fft[..., 1, :] + Lce_complex[2] * E_shower_fft[..., 2, :]
+    # Complicated broadcasting:
+    # Lce_complex is [3,3,trace_length], E_shower_fft is [3,trace_length] in case of a single trace, or [number_of_traces, 3, trace_length]
+    # Lce_complex[0] * E_shower_fft[..., 0, :] is (3, trace_length)*(trace_length)=(3, trace_length), can be done for 1 trace
+    # for multiple traces it is (3, trace_length)*(number_of_traces,trace_length) which can't be mutiplied
+    # However, Lce_complex[0] * E_shower_fft[..., 0, np.newaxis, :] is (3, trace_length)*(number_of_traces, 1, trace_length)
+    # = (number_of_traces, 3, trace_length) - works both for single trace and for multiple traces
+    Voc_shower_complex = Lce_complex[0] * E_shower_fft[..., 0, np.newaxis, :] + Lce_complex[1] * E_shower_fft[..., 1, np.newaxis, :] + Lce_complex[2] * E_shower_fft[..., 2, np.newaxis, :]
 
     # print(Voc_shower_complex[np.where(Voc_shower_complex!=0)])
     # print(Voc_shower_complex1[np.where(Voc_shower_complex1!=0)])
