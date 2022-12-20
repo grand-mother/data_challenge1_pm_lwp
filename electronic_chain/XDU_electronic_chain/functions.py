@@ -164,3 +164,48 @@ def expan(N, f0, f1, f2, data):
         data_expansion[duichen] = data.conjugate()
 
     return f, data_expansion
+
+def expann(N, f0, f1, f2, data):
+    """Multidimensional version of expan"""
+
+    # = == == == == This procedure is used as a subroutine to complete the expansion of the spectrum == == == == =
+    # % N is the number of frequency points, that is, the spectrum that needs to be expanded
+    # % f0 is the frequency step, MHz
+    # % f1 is the starting frequency of the spectrum to be expanded, f2 is the cutoff frequency of the spectrum to be expanded
+    # % The program only considers that the length of the expanded data is less than floor(N / 2), such as N = 10, the length of the expanded data <= 5; N = 9, the length of the expanded data <= 4
+
+
+    f = np.arange(0, N) * f0  # Frequency sequence
+    effective = data.shape[0]
+    delta_start = abs(f - f1)  # Difference from f1
+    delta_end = abs(f - f2)  # Difference from f2
+    f_hang_start = np.where(delta_start == min(delta_start))  # The row with the smallest difference
+    f_hang_start = f_hang_start[0][0]
+    f_hang_end = np.where(delta_end == min(delta_end))
+    f_hang_end = f_hang_end[0][0]
+    # Maybe there is a way to do it without an if...
+    if data.ndim>1:
+        data_expansion = np.zeros((N,*data.shape[1:]), dtype=complex)
+    else:
+        data_expansion = np.zeros(N, dtype=complex)
+
+    if f_hang_start == 0:
+        data_expansion[0,...] = data[0,...]
+        add = np.arange(f_hang_end + 1, N - effective + 1, 1)
+        duichen = np.arange(N - 1, N - effective + 1 - 1, -1)
+        data_expansion[add,...] = 0
+        data_expansion[f_hang_start: f_hang_end + 1,...] = data
+        data_expansion[duichen,...] = data[1:,...].conjugate()
+    else:
+        a1 = np.arange(0, f_hang_start - 1 + 1, 1).tolist()
+        a2 = np.arange(f_hang_end + 1, N - f_hang_start - effective + 1, 1).tolist()
+        a3 = np.arange(N - f_hang_start + 1, N, 1).tolist()  # Need to make up 0;
+        add = a1 + a2 + a3
+        add = np.array(add)
+        duichen = np.arange(N - f_hang_start, N - f_hang_start - effective, -1)
+        data_expansion[add,...] = 0
+        data_expansion[f_hang_start: f_hang_end + 1,...] = data[:]
+
+        data_expansion[duichen,...] = data.conjugate()
+
+    return f, data_expansion
