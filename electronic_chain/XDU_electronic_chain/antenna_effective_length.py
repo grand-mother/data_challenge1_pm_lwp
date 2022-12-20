@@ -1,4 +1,5 @@
 import h5py
+import numpy as np
 from scipy import interpolate
 from electronic_chain.XDU_electronic_chain.functions import *
 import electronic_chain.XDU_electronic_chain.config as config
@@ -86,15 +87,15 @@ def CEL(e_theta, e_phi, N, f0, unit):
 
     print("3_4", e_radiation.shape, np.moveaxis(e_radiation, 1, 2).shape, fenmu.shape)
 
-    Lce_complex_short = np.zeros((effective, 3, 3), dtype=complex)
-    Lce_complex_expansion = np.zeros((N, 3, 3), dtype=complex)
+    # Lce_complex_short = np.zeros((effective, 3, 3), dtype=complex)
+    # Lce_complex_expansion = np.zeros((N, 3, 3), dtype=complex)
     # for i in range(3):  # Polarization i = 1, 2, 3 respectively represent xyz polarization
     #     for p in range(3):
     #         # Xyz polarization of a single port
     #         Lce_complex_short[:, i, p] = e_radiation[:, p, i] / fenmu[:, p]
     #         [f, Lce_complex_expansion[:, i, p]] = expan(N, f0, f1, f2, Lce_complex_short[:, i, p])
 
-    Lce_complex_short = e_radiation / fenmu[:, :, np.newaxis]
+    Lce_complex_short = np.moveaxis(e_radiation / fenmu[:, :, np.newaxis], 1, 2)
 
     [f, Lce_complex_expansion] = expann(N, f0, f1, f2, Lce_complex_short)
 
