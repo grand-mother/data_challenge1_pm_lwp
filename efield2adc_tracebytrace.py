@@ -67,27 +67,31 @@ def main():
         f1 = f[0:int(N / 2) + 1]
 
         # =======Equivalent length================
-        [Lce_complex, antennas11_complex_short] = CEL(e_theta, e_phi, N, f0, 1)
+        # [Lce_complex, antennas11_complex_short] = CEL(e_theta, e_phi, N, f0, 1)
         # np.save("Lce_complex", Lce_complex)
         # np.save("antennas11_complex_short", antennas11_complex_short)
         # exit()
-        # Lce_complex = np.load("Lce_complex.npy")
-        # antennas11_complex_short = np.load("antennas11_complex_short.npy")
+        Lce_complex = np.load("Lce_complex.npy")
+        antennas11_complex_short = np.load("antennas11_complex_short.npy")
 
         print("4")
         # ======Galaxy noise power spectrum density, power, etc.=====================
         lst = 18
-        [galactic_v_complex_double, galactic_v_time] = gala(lst, N, f0, f1, tefield.du_count)
+        # [galactic_v_complex_double, galactic_v_time] = gala(lst, N, f0, f1, tefield.du_count)
         # np.save("galactic_v_complex_double", galactic_v_complex_double)
         # np.save("galactic_v_time", galactic_v_time)
-        # galactic_v_complex_double = np.load("galactic_v_complex_double.npy")
-        # galactic_v_time = np.load("galactic_v_time.npy")
+        galactic_v_complex_double = np.load("galactic_v_complex_double.npy")
+        galactic_v_time = np.load("galactic_v_time.npy")
         print("5")
         # =================== LNA=====================================================
         [rou1_complex, rou2_complex, rou3_complex] = LNA_get(antennas11_complex_short, N, f0, 1)
         print("6")
         # =======================  cable  filter VGA balun=============================================
         [cable_coefficient, filter_coefficient] = filter_get(N, f0, 1)
+
+        antenna_model = None
+        noise_model = [galactic_v_time, galactic_v_complex_double]
+        electronic_chain = {"LNA": rou1_complex * rou2_complex * rou3_complex, "cable": cable_coefficient, "filter": filter_coefficient}
 
         print("starting main loop")
         tvoltage.trace_x.clear()
@@ -103,21 +107,20 @@ def main():
             # ey = tefield.trace_y[trace_file_to_root[trace_num]]
             # ez = tefield.trace_z[trace_file_to_root[trace_num]]
             # This is assuming the ROOT source file has a correct order of antennas
-            ex = tefield.trace_x[trace_num]
-            ey = tefield.trace_y[trace_num]
-            ez = tefield.trace_z[trace_num]
-
-            antenna_model = None
-            noise_model = [galactic_v_time, galactic_v_complex_double]
-            electronic_chain = {"LNA":rou1_complex * rou2_complex * rou3_complex, "cable":cable_coefficient, "filter":filter_coefficient}
+            ex = np.array(tefield.trace_x[trace_num])
+            ey = np.array(tefield.trace_y[trace_num])
+            ez = np.array(tefield.trace_z[trace_num])
 
             ex, ey, ez = adjust_traces(ex, ey, ez, Ts)
 
             adc0, adc1, adc2, v_t, v_f = efield_trace_to_adc(ex, ey, ez, e_phi, e_theta, antenna_model, noise_model, electronic_chain, return_voltages=True)
 
-            tvoltage.trace_x.append(v_t[-1][:,0].astype(np.float32).tolist())
-            tvoltage.trace_y.append(v_t[-1][:,1].astype(np.float32).tolist())
-            tvoltage.trace_z.append(v_t[-1][:,2].astype(np.float32).tolist())
+            # tvoltage.trace_x.append(v_t[-1][:,0].astype(np.float32).tolist())
+            # tvoltage.trace_y.append(v_t[-1][:,1].astype(np.float32).tolist())
+            # tvoltage.trace_z.append(v_t[-1][:,2].astype(np.float32).tolist())
+            tvoltage.trace_x.append(v_t[-1][0].astype(np.float32).tolist())
+            tvoltage.trace_y.append(v_t[-1][1].astype(np.float32).tolist())
+            tvoltage.trace_z.append(v_t[-1][2].astype(np.float32).tolist())
             print("it end")
 
         print("filling")
