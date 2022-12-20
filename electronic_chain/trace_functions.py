@@ -66,21 +66,22 @@ def adjust_traces(ex, ey, ez, Ts):
 
 def apply_noise_to_trace(V_t, V_f_complex, noise_model):
     noise_model_t, noise_model_f = noise_model
-    print(noise_model_t.shape, noise_model_f.shape)
-    exit()
-    # ======Galaxy noise power spectrum density, power, etc.=====================
-    # ===========Voltage with added noise=======================================
-    Voc_noise_t = np.zeros_like(V_t)
-    Voc_noise_complex = np.zeros_like(V_t, dtype=complex)
-    for p in range(Voc_noise_complex.shape[1]):
-        Voc_noise_t[:, p] = V_t[:, p] + noise_model_t[10, :, p]
-        Voc_noise_complex[:, p] = V_f_complex[:, p] + noise_model_f[20, :, p]
 
-    Voc_noise_t1 = V_t + noise_model_t[10]
-    Voc_noise_complex1 = V_f_complex + noise_model_f[20]
+    # For bulk of traces, best to shuffle the noise array
+    if V_t.shape == noise_model_t.shape:
+        # Shuffle the noise arrays
+        np.random.shuffle(noise_model_t)
+        np.random.shuffle(noise_model_f)
 
+        # Add the noise to data
+        Voc_noise_t = V_t + noise_model_t
+        Voc_noise_complex = V_f_complex + noise_model_f
+    # For single trace, select random value from the noise array
+    else:
+        print(V_t.shape, noise_model_t.shape)
+        Voc_noise_t = V_t + noise_model_t[random.randint(a=0, b=noise_model_t.shape[0]-1)]
+        Voc_noise_complex = V_t + noise_model_f[random.randint(a=0, b=noise_model_f.shape[0]-1)]
 
-    # [Voc_noise_t_ifft, Voc_noise_m_single, Voc_noise_p_single] = ifftget(Voc_noise_complex, N, f1, 2)
     return Voc_noise_t, Voc_noise_complex
 
 def apply_noise_to_trace_old(V_t, V_f_complex, noise_model):
@@ -160,8 +161,9 @@ def efield_trace_to_adc(ex, ey, ez, phi, theta, antenna_model, noise_model, elec
 
     # Apply noise to Voltage
     # Voc_noise_t, Voc_noise_complex = apply_noise_to_trace_old(Voc_shower_t, Voc_shower_complex, noise_model)
-    Voc_noise_t = np.zeros_like(Voc_shower_t1)
-    Voc_noise_complex = np.zeros_like(Voc_shower_complex1)
+    Voc_noise_t, Voc_noise_complex = apply_noise_to_trace(Voc_shower_t1, Voc_shower_complex1, noise_model)
+    # Voc_noise_t = np.zeros_like(Voc_shower_t1)
+    # Voc_noise_complex = np.zeros_like(Voc_shower_complex1)
 
     # Apply electronic chain to Voltage, resulting in ADC counts
     # v_t, v_f, adc = apply_electronic_chain_to_trace(Voc_shower_complex, electronic_chain, return_all=True)
