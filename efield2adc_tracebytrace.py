@@ -4,6 +4,7 @@ import sys
 
 from grand.io.root_trees import *
 from electronic_chain.trace_functions import *
+from misc_functions import *
 
 import electronic_chain.XDU_electronic_chain.config as XDU_config
 from electronic_chain.XDU_electronic_chain.LNA import LNA_get
@@ -98,8 +99,9 @@ def main():
         tvoltage.trace_y.clear()
         tvoltage.trace_z.clear()
         print("preloop")
+        time_passed(True)
         for trace_num in range(len(tefield.trace_x)):
-            print("it start")
+            # print("it start")
             # This is for Coarse2.root only, with manually restructured order of antennas
             # Works with Stshp_LWP_S23d_Proton_5.6_87.9_290.0_1 and Coarse2.root that I've put there
             # Reorderring was needed for sane comparison with the original electronic chain results
@@ -121,7 +123,11 @@ def main():
             tvoltage.trace_x.append(v_t[-1][0].astype(np.float32).tolist())
             tvoltage.trace_y.append(v_t[-1][1].astype(np.float32).tolist())
             tvoltage.trace_z.append(v_t[-1][2].astype(np.float32).tolist())
-            print("it end")
+            # exit()
+
+            # print("it end")
+
+        print(time_passed())
 
         print("filling")
         tvoltage.fill()
