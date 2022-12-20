@@ -1,8 +1,8 @@
 import numpy as np
 import math
 import random
-from electronic_chain.XDU_electronic_chain.functions import ifftget
-from electronic_chain.XDU_electronic_chain.efield2voltage import efield2voltage
+from electronic_chain.XDU_electronic_chain.functions import ifftget, ifftgetn
+from electronic_chain.XDU_electronic_chain.efield2voltage import efield2voltage, efield2voltage_old
 
 def adjust_traces(ex, ey, ez, Ts):
     """Adjust the traces length and positioning"""
@@ -33,11 +33,11 @@ def adjust_traces(ex, ey, ez, Ts):
     # Even number: floor(N / 2 + 1)-1 and floor(N / 2 + 1) + 1 are conjugated;
 
     # = == == == Change the original signal length to be the same as N======================
-    ex_cut = np.zeros((N))
-    ey_cut = np.zeros((N))
-    ez_cut = np.zeros((N))
+    ex_cut = np.zeros((*ex.shape[:-1],N))
+    ey_cut = np.zeros((*ex.shape[:-1],N))
+    ez_cut = np.zeros((*ex.shape[:-1],N))
 
-    lx = len(ex)
+    lx = ex.shape[-1]
     if N <= lx:
         # ============================In order to avoid not getting the peak value, judge whether the peak value is within N == == == == == == == =
         posx = np.argmax(ex)
@@ -45,26 +45,45 @@ def adjust_traces(ex, ey, ez, Ts):
         posz = np.argmax(ez)
         hang = max(posx, posy, posz)
         if hang >= N:
-            ex_cut[0: N - 500] = ex[hang - (N - 500): hang]
-            ex_cut[N - 500: N] = ex[hang: hang + 500]
+            ex_cut[..., 0: N - 500] = ex[..., hang - (N - 500): hang]
+            ex_cut[..., N - 500: N] = ex[..., hang: hang + 500]
 
-            ey_cut[0: N - 500] = ey[hang - (N - 500): hang]
-            ey_cut[N - 500: N] = ey[hang: hang + 500]
+            ey_cut[..., 0: N - 500] = ey[..., hang - (N - 500): hang]
+            ey_cut[..., N - 500: N] = ey[..., hang: hang + 500]
 
-            ez_cut[0: N - 500] = ez[hang - (N - 500): hang]
-            ez_cut[N - 500: N] = ez[hang: hang + 500]
+            ez_cut[..., 0: N - 500] = ez[..., hang - (N - 500): hang]
+            ez_cut[..., N - 500: N] = ez[..., hang: hang + 500]
         else:
-            ex_cut[0: N] = ex[0: N]
-            ey_cut[0: N] = ey[0: N]
-            ez_cut[0: N] = ez[0: N]
+            ex_cut[..., 0: N] = ex[..., 0: N]
+            ey_cut[..., 0: N] = ey[..., 0: N]
+            ez_cut[..., 0: N] = ez[..., 0: N]
     else:
-        ex_cut[0: lx] = ex[0:]
-        ey_cut[0: lx] = ey[0:]
-        ez_cut[0: lx] = ez[0:]
+        ex_cut[..., 0: lx] = ex[..., 0:]
+        ey_cut[..., 0: lx] = ey[..., 0:]
+        ez_cut[..., 0: lx] = ez[..., 0:]
 
     return np.array(ex_cut), np.array(ey_cut), np.array(ez_cut)
 
 def apply_noise_to_trace(V_t, V_f_complex, noise_model):
+    noise_model_t, noise_model_f = noise_model
+    print(noise_model_t.shape, noise_model_f.shape)
+    exit()
+    # ======Galaxy noise power spectrum density, power, etc.=====================
+    # ===========Voltage with added noise=======================================
+    Voc_noise_t = np.zeros_like(V_t)
+    Voc_noise_complex = np.zeros_like(V_t, dtype=complex)
+    for p in range(Voc_noise_complex.shape[1]):
+        Voc_noise_t[:, p] = V_t[:, p] + noise_model_t[10, :, p]
+        Voc_noise_complex[:, p] = V_f_complex[:, p] + noise_model_f[20, :, p]
+
+    Voc_noise_t1 = V_t + noise_model_t[10]
+    Voc_noise_complex1 = V_f_complex + noise_model_f[20]
+
+
+    # [Voc_noise_t_ifft, Voc_noise_m_single, Voc_noise_p_single] = ifftget(Voc_noise_complex, N, f1, 2)
+    return Voc_noise_t, Voc_noise_complex
+
+def apply_noise_to_trace_old(V_t, V_f_complex, noise_model):
     noise_model_t, noise_model_f = noise_model
     # ======Galaxy noise power spectrum density, power, etc.=====================
     # ===========Voltage with added noise=======================================
@@ -83,12 +102,20 @@ def apply_electronic_chain_to_trace(V_f_complex, electronic_chain, return_all=Fa
     adc_list = []
     # Loop through all the parts of the electronic chain dictionary
     for (key,part) in electronic_chain.items():
-        v_f_list.append(np.zeros_like(V_f_complex, dtype=complex))
+        # v_f_list.append(np.zeros_like(V_f_complex, dtype=complex))
         # v_f_list.append(np.zeros_like(V_f_complex))
-        v_prev = v_f_list[-2]
-        v_new = v_f_list[-1]
-        for p in range(V_f_complex.shape[1]):
-            v_new[:, p] = part[:,p] * v_prev[:, p] + 0
+        # v_prev = v_f_list[-2]
+        # v_new = v_f_list[-1]
+        # print(v_new.shape)
+        # exit()
+        # for p in range(V_f_complex.shape[1]):
+        #     v_new[:, p] = part[:,p] * v_prev[:, p] + 0
+
+        # v_new[:] = part * v_prev
+
+        # Append the last voltage convolved with the new electronic chain element to the list of results
+        v_f_list.append(v_f_list[-1] * part)
+
         if return_all or key == list(electronic_chain.keys())[-1]:
 
             # ToDo: This should be gotten from the trace parameters
@@ -99,7 +126,8 @@ def apply_electronic_chain_to_trace(V_f_complex, electronic_chain, return_all=Fa
             f = np.arange(0, N) * f0  # frequency sequence
             f1 = f[0:int(N / 2) + 1]
 
-            [V_t, _, _] = ifftget(v_new, N, f1, 2)
+            # [V_t, _, _] = ifftget(v_new, N, f1, 2)
+            [V_t, _, _] = ifftgetn(v_f_list[-1], N, f1, 2)
             v_t_list.append(V_t)
 
             # ====================Voltage after ADC======================================
@@ -118,13 +146,24 @@ def apply_electronic_chain_to_trace(V_f_complex, electronic_chain, return_all=Fa
 # The main function defining the Efield -> ADC conversion for a single trace
 def efield_trace_to_adc(ex, ey, ez, phi, theta, antenna_model, noise_model, electronic_chain, efield2voltage_func=efield2voltage, return_voltages=False):
     # Convert Efield to Voltage
-    Voc_shower_t, Voc_shower_complex = efield2voltage_func(ex, ey, ez, phi, theta, 0.5, antenna_model)
+    # Voc_shower_t, Voc_shower_complex = efield2voltage_old(ex, ey, ez, phi, theta, 0.5, antenna_model)
+    # print(ex.shape)
+    # exit()
+    Voc_shower_t1, Voc_shower_complex1 = efield2voltage(ex, ey, ez, phi, theta, 0.5, antenna_model)
+    Voc_shower_t = np.moveaxis(Voc_shower_t1, 0, 1)
+    Voc_shower_complex = np.moveaxis(Voc_shower_complex1, 0, 1)
+    # print(Voc_shower_t1.shape, Voc_shower_t.shape)
+    # print(Voc_shower_t1, Voc_shower_t)
+    # print("tu", np.all(Voc_shower_t==Voc_shower_t1))
+    # print("tu", np.all(Voc_shower_complex == Voc_shower_complex1))
+    # exit()
 
     # Apply noise to Voltage
-    Voc_noise_t, Voc_noise_complex = apply_noise_to_trace(Voc_shower_t, Voc_shower_complex, noise_model)
+    Voc_noise_t, Voc_noise_complex = apply_noise_to_trace_old(Voc_shower_t, Voc_shower_complex, noise_model)
 
     # Apply electronic chain to Voltage, resulting in ADC counts
-    v_t, v_f, adc = apply_electronic_chain_to_trace(Voc_shower_complex, electronic_chain, return_all=True)
+    # v_t, v_f, adc = apply_electronic_chain_to_trace(Voc_shower_complex, electronic_chain, return_all=True)
+    v_t, v_f, adc = apply_electronic_chain_to_trace(Voc_shower_complex1, electronic_chain, return_all=True)
     adc = adc[-1]
 
     if return_voltages:
