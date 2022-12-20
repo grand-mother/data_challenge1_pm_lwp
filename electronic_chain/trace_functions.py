@@ -159,7 +159,9 @@ def efield_trace_to_adc(ex, ey, ez, phi, theta, antenna_model, noise_model, elec
     # exit()
 
     # Apply noise to Voltage
-    Voc_noise_t, Voc_noise_complex = apply_noise_to_trace_old(Voc_shower_t, Voc_shower_complex, noise_model)
+    # Voc_noise_t, Voc_noise_complex = apply_noise_to_trace_old(Voc_shower_t, Voc_shower_complex, noise_model)
+    Voc_noise_t = np.zeros_like(Voc_shower_t1)
+    Voc_noise_complex = np.zeros_like(Voc_shower_complex1)
 
     # Apply electronic chain to Voltage, resulting in ADC counts
     # v_t, v_f, adc = apply_electronic_chain_to_trace(Voc_shower_complex, electronic_chain, return_all=True)
