@@ -1,9 +1,16 @@
-from electronic_chain.XDU_electronic_chain.functions import *
-import electronic_chain.XDU_electronic_chain.config as config
+import electronic_chain.ec_config as ec_config
+from XDU_electronic_chain.functions import *
+import XDU_electronic_chain.config as config
 from scipy import interpolate
+from functools import lru_cache
+
+def filter_get(sampling_time=0.5, unit=1, **kwargs):
+    return real_filter_get(sampling_time, unit)
 
 # ===============================================Filterparameter get====================================
-def filter_get(N, f0, unit):
+# def filter_get(N, f0, unit):
+@lru_cache(maxsize=1)
+def real_filter_get(sampling_time=0.5, unit=1):
     """The least significant dimension (the trace) goes last"""
 
 
@@ -20,6 +27,10 @@ def filter_get(N, f0, unit):
     # cable_coefficient
     # filter_coefficient
 
+    fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
+    N = math.ceil(fs)
+    f0 = fs / N  # base frequency, Frequency resolution
+
     Gain_VGA = -1.5  # dB
     r_balun = 630 * 2 / 650
     # test filter without VGA
@@ -30,7 +41,7 @@ def filter_get(N, f0, unit):
     for p in range(3):
         #  cable参数
         # str_p = str(p + 1)
-        cable_Address = config.XDU_files_path+"/cableparameter/cable.s2p"
+        cable_Address = config.XDU_files_path + "/cableparameter/cable.s2p"
         freq = np.loadtxt(cable_Address, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             res11 = np.loadtxt(cable_Address, usecols=1)
@@ -87,7 +98,7 @@ def filter_get(N, f0, unit):
     for p in range(3):
         #  filter parameter
         # str_p = str(p + 1)
-        filter_Address = config.XDU_files_path+"/filterparameter/1.s2p"
+        filter_Address = config.XDU_files_path + "/filterparameter/1.s2p"
         freq = np.loadtxt(filter_Address, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             res11 = np.loadtxt(filter_Address, usecols=1)
@@ -143,7 +154,12 @@ def filter_get(N, f0, unit):
 
     filter_coefficient = (1 + filter_Gama_complex) * filter_s21_complex
 
-    return cable_coefficient, filter_coefficient
+    # Inside pipeline return - a dictionary
+    if ec_config.in_pipeline:
+        return {"cable_coefficient": cable_coefficient, "filter_coefficient": filter_coefficient}
+    # Outside pipeline return - raw values
+    else:
+        return cable_coefficient, filter_coefficient
 
 def filter_get_old(N, f0, unit):
     # This Python file uses the following encoding: utf-8
@@ -172,7 +188,7 @@ def filter_get_old(N, f0, unit):
     for p in range(3):
         #  cable参数
         # str_p = str(p + 1)
-        cable_Address = config.XDU_files_path+"/cableparameter/cable.s2p"
+        cable_Address = config.XDU_files_path + "/cableparameter/cable.s2p"
         freq = np.loadtxt(cable_Address, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             res11 = np.loadtxt(cable_Address, usecols=1)
@@ -227,7 +243,7 @@ def filter_get_old(N, f0, unit):
     for p in range(3):
         #  filter parameter
         # str_p = str(p + 1)
-        filter_Address = config.XDU_files_path+"/filterparameter/1.s2p"
+        filter_Address = config.XDU_files_path + "/filterparameter/1.s2p"
         freq = np.loadtxt(filter_Address, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             res11 = np.loadtxt(filter_Address, usecols=1)

@@ -1,13 +1,31 @@
 import h5py
-import numpy as np
 from scipy import interpolate
-from electronic_chain.XDU_electronic_chain.functions import *
-import electronic_chain.XDU_electronic_chain.config as config
+import electronic_chain.ec_config as ec_config
+from XDU_electronic_chain.functions import *
+import XDU_electronic_chain.config as config
 from functools import lru_cache
 
 # This decorator stores the function result in memory, so the function is called only once, and next calls just read the result from memory
 @lru_cache(maxsize=1)
-def CEL(e_theta, e_phi, N, f0, unit):
+def get_f_radiation(REfile):
+    """Gets/calculates f_radiation needed by CEL()"""
+    # Complex electric field 30-250MHz
+    REfile = config.XDU_files_path + "/Complex_RE.mat"
+    RE = h5py.File(REfile, 'r')
+    # Transposing takes very long
+    RE_zb = np.transpose(RE['data_rE_ALL'])
+    re_complex = RE_zb.view('complex')
+    f_radiation = np.transpose(RE['f_radiation'])  # mhz
+
+    return f_radiation, re_complex
+
+
+# def CEL(e_theta, e_phi, N, f0, unit):
+def CEL(e_theta, e_phi, trace_length, sampling_time, unit=1, **kwargs):
+    return real_cel(e_theta, e_phi, trace_length, sampling_time, unit)
+
+@lru_cache(maxsize=1)
+def real_cel(e_theta, e_phi, trace_length, sampling_time, unit=1):
     # This Python file uses the following encoding: utf-8
 
     # from complex_expansion import expan
@@ -24,23 +42,31 @@ def CEL(e_theta, e_phi, N, f0, unit):
     # Lce_complex_expansion is the equivalent length of a specific incident direction
     # s11_complex is the antenna test data
 
-    # Complex electric field 30-250MHz
-    REfile = config.XDU_files_path+"/Complex_RE.mat"
-    RE = h5py.File(REfile, 'r')
-    # Transposing takes very long
-    RE_zb = np.transpose(RE['data_rE_ALL'])
-    re_complex = RE_zb.view('complex')
-    f_radiation = np.transpose(RE['f_radiation'])  # mhz
-    effective = max(f_radiation.shape[0], f_radiation.shape[1])
+    Ts = sampling_time
+    fs = 1 / Ts * 1000  # sampling frequency, MHZ
+    N = math.ceil(fs)
+    f0 = fs / N  # base frequency, Frequency resolution
+    # Different N ;)
+    N = trace_length
 
-    # Interpolation takes very long
+    # Call the cached value - a speedup
+    f_radiation, re_complex = get_f_radiation(config.XDU_files_path+"/Complex_RE.mat")
+
     e_radiation = inter(re_complex, e_theta, e_phi)
+    # np.save("f_radiation", f_radiation)
+    # np.save("e_radiation", e_radiation)
+    # exit()
+
+    # f_radiation = np.load("f_radiation.npy")
+    # e_radiation = np.load("e_radiation.npy")
+
+    effective = max(f_radiation.shape[0], f_radiation.shape[1])
 
     # 测试s1p
     s11_complex = np.zeros((effective, 3), dtype=complex)  # 3 ports
     for p in range(3):
         str_p = str(p + 1)
-        filename = config.XDU_files_path+"/antennaVSWR/" + str_p + ".s1p"
+        filename = config.XDU_files_path + "/antennaVSWR/" + str_p + ".s1p"
         freq = np.loadtxt(filename, usecols=0) / 1e6  # HZ to MHz
         if unit == 0:
             re = np.loadtxt(filename, usecols=1)
@@ -64,8 +90,6 @@ def CEL(e_theta, e_phi, N, f0, unit):
         imnew = f_im(freqnew)
         s11_complex[:, p] = renew + 1j * imnew
 
-    print("3_3")
-
     # %Reduced current
     z0 = 50
     a1 = 1
@@ -85,8 +109,6 @@ def CEL(e_theta, e_phi, N, f0, unit):
     f1 = f_radiation[0][0]
     f2 = f_radiation[0][-1]
 
-    print("3_4", e_radiation.shape, np.moveaxis(e_radiation, 1, 2).shape, fenmu.shape)
-
     # Lce_complex_short = np.zeros((effective, 3, 3), dtype=complex)
     # Lce_complex_expansion = np.zeros((N, 3, 3), dtype=complex)
     # for i in range(3):  # Polarization i = 1, 2, 3 respectively represent xyz polarization
@@ -99,6 +121,11 @@ def CEL(e_theta, e_phi, N, f0, unit):
 
     [f, Lce_complex_expansion] = expann(N, f0, f1, f2, Lce_complex_short)
 
-    return Lce_complex_expansion, s11_complex
+    # Inside pipeline return - a dictionary
+    if ec_config.in_pipeline:
+        return {"Lce_complex": Lce_complex_expansion, "antennas11_complex_short": s11_complex}
+    # Outside pipeline return - raw values
+    else:
+        return Lce_complex_expansion, s11_complex
 
 

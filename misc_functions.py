@@ -1,6 +1,7 @@
 """Miscellaneous functions"""
 
 import time
+import numpy as np
 
 # timer for time benchmarking
 time_benchmark = None
@@ -18,3 +19,13 @@ def time_passed(init=False):
 	# time_benchmark=time.process_time()
 	time_benchmark=time.perf_counter()
 	return passed_time
+
+def multiInterp2(x, xp, fp):
+	"""1D interpolation over a 2D array
+	from https://stackoverflow.com/questions/43772218/fastest-way-to-use-numpy-interp-on-a-2-d-array"""
+	i = np.arange(x.shape[0])
+	# i = np.arange(fp.shape[0])
+	j = np.searchsorted(xp, x) - 1
+	d = (x - xp[j]) / (xp[j + 1] - xp[j])
+	print("aaa", i, j, fp.shape, d.shape)
+	return (1 - d) * fp[i, j] + fp[i, j + 1] * d

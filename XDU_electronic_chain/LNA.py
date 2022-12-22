@@ -1,10 +1,12 @@
-from electronic_chain.XDU_electronic_chain.functions import *
-import electronic_chain.XDU_electronic_chain.config as config
+import electronic_chain.ec_config as ec_config
+from XDU_electronic_chain.functions import *
+import XDU_electronic_chain.config as config
 from scipy import interpolate
 from numpy.ma import log10, abs
 
 # ===========================================LNAparameter get===========================================
-def LNA_get(antennas11_complex_short, N, f0, unit):
+# def LNA_get(antennas11_complex_short, N, f0, unit):
+def LNA_get(antennas11_complex_short, sampling_time=0.5, unit=1, **kwargs):
     """The least significant dimension (the trace) goes last"""
 
     # from complex_expansion import expan
@@ -19,6 +21,11 @@ def LNA_get(antennas11_complex_short, N, f0, unit):
     # f0 is the frequency resolution,
     # % ----------------------output - ---------------------------------- %
     # rou1 rou2 rou3
+
+    Ts = sampling_time
+    fs = 1 / Ts * 1000  # sampling frequency, MHZ
+    N = math.ceil(fs)
+    f0 = fs / N  # base frequency, Frequency resolution
 
     z0 = 50 # characteristic impedance
 
@@ -39,7 +46,7 @@ def LNA_get(antennas11_complex_short, N, f0, unit):
     for p in range(3):
         #  LNA parameter
         str_p = str(p + 1)
-        LNA_Address = config.XDU_files_path+"/LNASparameter/" + str_p + ".s2p"
+        LNA_Address = config.XDU_files_path + "/LNASparameter/" + str_p + ".s2p"
         freq = np.loadtxt(LNA_Address, usecols=0) / 1e6  # Hz to MHz
         if unit == 0:
             res11 = np.loadtxt(LNA_Address, usecols=1)
@@ -90,7 +97,14 @@ def LNA_get(antennas11_complex_short, N, f0, unit):
     rou2 = (1 + LNA_Gama_complex) / (1 - antenna_Gama_complex * LNA_Gama_complex)
     rou3 = LNA_s21_complex / (1 + LNA_Gama_complex)
 
-    return rou1, rou2, rou3
+    # Inside pipeline return - a dictionary
+    if ec_config.in_pipeline:
+        return {"LNA_coefficient": rou1*rou2*rou3}
+    # Outside pipeline return - raw values
+    else:
+        return rou1*rou2*rou3
+
+    # return rou1, rou2, rou3
 
 def LNA_get_old(antennas11_complex_short, N, f0, unit):
     # This Python file uses the following encoding: utf-8
@@ -126,7 +140,7 @@ def LNA_get_old(antennas11_complex_short, N, f0, unit):
     for p in range(3):
         #  LNA parameter
         str_p = str(p + 1)
-        LNA_Address = config.XDU_files_path+"/LNASparameter/" + str_p + ".s2p"
+        LNA_Address = config.XDU_files_path + "/LNASparameter/" + str_p + ".s2p"
         freq = np.loadtxt(LNA_Address, usecols=0) / 1e6  # Hz to MHz
         if unit == 0:
             res11 = np.loadtxt(LNA_Address, usecols=1)

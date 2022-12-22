@@ -1,11 +1,11 @@
-import numpy as np
+import electronic_chain.ec_config as ec_config
+from XDU_electronic_chain.antenna_effective_length import CEL
+from XDU_electronic_chain.functions import *
 
-from electronic_chain.XDU_electronic_chain.antenna_effective_length import CEL
-from electronic_chain.XDU_electronic_chain.functions import *
-
-def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calculation_function=CEL):
+# def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calculation_function=CEL):
+def efield2voltage(traces_t, sampling_time, Lce_complex, **kwargs):
     # ToDo: This should be gotten from the trace parameters
-    Ts = dt
+    Ts = sampling_time
     fs = 1 / Ts * 1000  # sampling frequency, MHZ
     N = math.ceil(fs)
     f0 = fs / N  # base frequency, Frequency resolution
@@ -14,21 +14,23 @@ def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calc
 
 
     # [Lce_complex, antennas11_complex_short] = antenna_model_calculation_function(theta, phi, len(ex), f0, 1.0)
+    # [Lce_complex, antennas11_complex_short] = antenna_model_calculation_function(e_theta, e_phi, traces_t.shape[1], f0, 1.0)
     # np.save("Lce_complex", Lce_complex)
     # np.save("antennas11_complex_short", antennas11_complex_short)
     # exit()
-    Lce_complex = np.load("Lce_complex.npy")
+    # Lce_complex = np.load("Lce_complex.npy")
 
     # ======Open circuit voltage of air shower=================
-    Lcehang = Lce_complex.shape[0]
-    Lcelie = Lce_complex.shape[2]
+    # Lcehang = Lce_complex.shape[0]
+    # Lcelie = Lce_complex.shape[2]
 
 
     # Edata = np.stack([ex, ey, ez], axis=1)
     #
     # [E_shower_fft, E_shower_fft_m_single, E_shower_fft_p_single] = fftget(Edata, N, f1)  # Frequency domain signal
 
-    Edata1 = np.stack([ex, ey, ez], axis=-2)
+    # Edata1 = np.stack([ex, ey, ez], axis=-2)
+    Edata1 = traces_t
 
     [E_shower_fft, E_shower_fft_m_single, E_shower_fft_p_single] = fftgetn(Edata1, N, f1)  # Frequency domain signal
 
@@ -74,7 +76,12 @@ def efield2voltage(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calc
     # time domain signal
     # [Voc_shower_t, Voc_shower_m_single, Voc_shower_p_single] = ifftget(Voc_shower_complex, N, f1, 2)
 
-    return Voc_shower_t, Voc_shower_complex
+    # Inside pipeline return - a dictionary
+    if ec_config.in_pipeline:
+        return {"traces_t": Voc_shower_t, "traces_f": Voc_shower_complex}
+    # Outside pipeline return - raw values
+    else:
+        return Voc_shower_t, Voc_shower_complex
 
 def efield2voltage_old(ex, ey, ez, phi, theta, dt, antenna_model, antenna_model_calculation_function=CEL):
     # ToDo: This should be gotten from the trace parameters
