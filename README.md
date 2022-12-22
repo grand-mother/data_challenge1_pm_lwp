@@ -13,6 +13,7 @@
 3. I store into `results/` subdirectory (but you can change)
 4. Before each re-run the `results/` subdirectory contents need to be deleted manually (easiest on command line: `rm -rf results/; ./thenameofthescript.py someparameters`)
 5. I'll add an option to overwrite the files later
+6. If you want repeatable clean results, comment out the galactic noise addition
 
 ### How to run ###
 
