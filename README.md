@@ -20,28 +20,30 @@
 
 ### How to run ###
 
-**The pipeline can be run in several ways:**
-* Most universal
+The pipeline can be run in **several ways**:
+1. With **external pipeline config file** *(most universal)*:
   
-  Executes the pipeline specified in XDU_pipeline.yaml file
+  * Executes the pipeline specified in XDU_pipeline.yaml file
 
-  `rm -rf results; ./efield2adc_alltraces_external_pipeline.py data/*.root -p XDU_pipeline.yaml -od results`
+     `rm -rf results; ./efield2adc_alltraces_external_pipeline.py data/*.root -p XDU_pipeline.yaml -od results`
 
-* Easy, but not universal
-  
-  Executes the pipeline internally stored in the script
+2. With **internal pipeline config file**:
+
+  * Easy:
+    
+    Executes the pipeline internally stored in the called script as a dictionary
  
-  `rm -rf results; ./efield2adc_alltraces_internal_pipeline_XDU.py data/*.root -od results/`
+     `rm -rf results; ./efield2adc_alltraces_internal_pipeline_XDU.py data/*.root -od results/`
 
-* For full control
+  * For full control:
   
-  The script calls the pipeline specified in `XDU_electronic_chain/XDU_manual_pipeline.py`
+    The script calls the pipeline specified programmatically (python code) in `XDU_electronic_chain/XDU_manual_pipeline.py`
 
-  `rm -rf results; ./efield2adc_alltraces_XDU.py data/*.root -od results`
+       `rm -rf results; ./efield2adc_alltraces_XDU.py data/*.root -od results`
 
-* If trace by trace analysis is needed (much slower), also calls the pipeline specified in `XDU_electronic_chain/XDU_manual_pipeline.py`
+  * If trace by trace analysis is needed (much slower), also calls the pipeline specified in `XDU_electronic_chain/XDU_manual_pipeline.py`:
 
-  `rm -rf results; ./efield2adc_tracebytrace_XDU.py data/*.root -od results`  
+       `rm -rf results; ./efield2adc_tracebytrace_XDU.py data/*.root -od results`  
 
 As you probably guessed:
   1. First parameter is input file(s)
