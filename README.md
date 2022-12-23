@@ -6,6 +6,9 @@
 2. Please download the necessary XDU files (antenna model, coefficients, etc.). 1 GB :(
    1. temporarily at: https://mega.nz/file/kFhDGTzK#UCuP_usSD4TxdxsmtbKSd_Z_1dP66MFFprrXIuJ6BdA
    2. unpack into `XDU_electronic_chain` (so the structure is `data_challenge1_pm_lwp/XDU_electronic_chain/XDU_files`)
+3. Please install yaml python module
+   
+   `pip install yaml` as root should do.
 
 ### Remarks:
 1. I assume that the source root files are in the `data_challenge1_pm_lwp/data/` subdirectory (but you can change, of course)
