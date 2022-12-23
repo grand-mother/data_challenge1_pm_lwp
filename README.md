@@ -36,11 +36,10 @@
 * For full control
   
   The script calls the pipeline specified in `XDU_electronic_chain/XDU_manual_pipeline.py`
+
   `rm -rf results; ./efield2adc_alltraces_XDU.py data/*.root -od results`
 
-* If trace by trace analysis is needed
-
-  Much slower
+* If trace by trace analysis is needed (much slower), also calls the pipeline specified in `XDU_electronic_chain/XDU_manual_pipeline.py`
 
   `rm -rf results; ./efield2adc_tracebytrace_XDU.py data/*.root -od results`  
 
