@@ -30,7 +30,7 @@ def manual_pipeline(traces_t, phi, theta, du_count, original_trace_length, sampl
     galactic_v_time, v_complex_double = gala(du_count, sampling_rate=sampling_time, lst=18)
 
     # Apply galactic noise
-    traces_t, traces_f = ectf.add_traces_randomized(traces_f, [galactic_v_time, v_complex_double], traces_f, sampling_time)
+    traces_t, traces_f = ectf.add_traces_randomized(traces_t, [galactic_v_time, v_complex_double], traces_f, sampling_time)
     if return_all_traces:
         all_traces_t.append(np.copy(traces_t))
         all_traces_f.append(np.copy(traces_f))
