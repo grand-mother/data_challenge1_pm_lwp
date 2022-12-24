@@ -3,11 +3,10 @@
 import os
 import importlib
 import numpy as np
+import math
 import electronic_chain.ec_config
 from electronic_chain.trace_functions import add_traces, multiply_traces, add_traces_randomized
 import grand.io.root_trees
-from grand.io.root_trees import *
-
 
 def store_traces(traces_t, tree, copy_tree=None):
     """Stores provided traces in the provided tree"""
@@ -27,16 +26,6 @@ def store_traces(traces_t, tree, copy_tree=None):
 
     tree.fill()
 
-
-# Check if there are no trees with the same name in the same files
-def are_trees_unique(trees):
-    names_files = []
-    for tree in trees:
-        names_files.append((tree.tree_name, tree.file_name))
-
-    # Unique, if no repeating element in the names_files
-    return len(set(names_files)) == len(names_files)
-
 # ToDo: there should also be a kind of tree names list. Probably will be solved with usage of DataFile
 def execute_pipeline(pipeline, filelist, output_dir=""):
     """Execute the pipeline"""
@@ -44,10 +33,11 @@ def execute_pipeline(pipeline, filelist, output_dir=""):
     # Changes the returns of functions to dictionaries - needed for the pipeline
     electronic_chain.ec_config.in_pipeline = True
 
-    # Execute the prep_func before looping
-    if "prep_func" in pipeline:
-        prep_func = importlib.__import__(pipeline["prep_func"]["module"], fromlist=("prep_func")).prep_func
-        var_dict = prep_func(**pipeline["prep_func"]["kwargs"])
+    # Execute the prep_func before looping through files
+    # Only one prep func allowed in pipeline
+    if "prefileloop_call" in pipeline:
+        prep_func = importlib.__import__(pipeline["prefileloop_call"]["module"], fromlist=("prefileloop_call")).prep_func
+        var_dict = prep_func(**pipeline["prefileloop_call"]["kwargs"])
 
     # Loop through files
     for in_root_file in filelist:
@@ -57,53 +47,16 @@ def execute_pipeline(pipeline, filelist, output_dir=""):
         # ToDo: This should not be up to a user, at least not in this ugly way
         grand.io.root_trees.grand_tree_list = []
 
-        filename_only = os.path.split(in_root_file)[-1]
+        # Execute all the preeventloop_calls in the pipeline
+        for (key,part) in pipeline.items():
+            if part["type"]=="preeventloop_call":
+                # Find the specified preeventloop function in the module
+                func = getattr(importlib.__import__(part["module"]), key)
+                # Call the function
+                var_dict.update(func(pipeline=pipeline, in_root_file=in_root_file, output_dir=output_dir, **var_dict))
 
-        # If given, create the output directory and use it
-        if output_dir != "":
-            os.makedirs(output_dir, exist_ok=True)
-
-        # Open the ROOT tree with simulation shower data
-        tshower = ShowerEventSimdataTree(in_root_file)
-        var_dict["tshower"] = tshower
-        # Open the ROOT tree with traces
-        tefield = EfieldEventTree(in_root_file)
-        var_dict["tefield"] = tefield
-        # Open the ROOT tree with simulation run info
-        trunefieldsimdata = EfieldRunSimdataTree(in_root_file)
-        var_dict["trunefieldsimdata"] = trunefieldsimdata
-        # Read the run data before the events loop
-        trunefieldsimdata.get_entry(0)
-
-        # Generate the list of files/trees to be written
-        output_trees = []
-        for (key, part) in pipeline.items():
-            if part["type"] == "store":
-                # Get the tree class object from its name
-                class_object = globals()[part["tree_type"]]
-
-                prefix = ""
-                if output_dir!="":
-                    prefix = output_dir+"/"
-
-                # Create the tree instance in a filename with suffix
-                if "filename_suffix" in part:
-                    output_filename = prefix+filename_only.split(".root")[0]+part["filename_suffix"]+".root"
-                # Create the tree instance in the input file (dangerous, can corrupt data in a rare, bad case)
-                else:
-                    output_filename = prefix+filename_only
-
-                part["output_tree"] = class_object(output_filename)
-
-                # Set the tree name if specified
-                if "tree_name" in part:
-                    part["output_tree"].tree_name(part["tree_name"])
-
-                output_trees.append(part["output_tree"])
-
-        # Check if there are no trees with the same name in the same files
-        if not are_trees_unique(output_trees):
-            raise RuntimeError("Can not have trees with identical names in the same files. Please check the pipeline output trees' file names and tree names!")
+        output_trees = var_dict["output_trees"]
+        tshower, tefield = var_dict["tshower"], var_dict["tefield"]
 
         # Loop through events
         for i in range(tshower.get_entries()):
@@ -115,8 +68,8 @@ def execute_pipeline(pipeline, filelist, output_dir=""):
             # Loop through the elements of the pipeline
             for (key,part) in pipeline.items():
                 print("Applying ", key)
-                # Skip the prep_func
-                if key=="prep_func": continue
+                # Skip the prefileloop_call and preeventloop_call
+                if key=="prefileloop_call" or key=="preeventloop_call": continue
 
                 # Take action depending on the type of the pipeline element
                 # ToDo: when we upgrade to Python >=3.10, "match" conditional should be used
@@ -129,6 +82,7 @@ def execute_pipeline(pipeline, filelist, output_dir=""):
                         input_dict = {**part["kwargs"], **var_dict}
                     else:
                         input_dict = var_dict
+
                     res = func(**input_dict)
                     # Update the results dictionary
                     var_dict.update(res)

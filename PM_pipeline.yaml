@@ -1,8 +1,11 @@
-prep_func:
-  type: prep
+prefileloop_call:
+  type: prefileloop_call
   kwargs:
     PM_files_path: PM_functions/PM_files
   module: PM_functions
+preevent_func:
+  type: preeventloop_call
+  module: PM_functions.preevent_func
 read_angles:
   type: call
   module: electronic_chain

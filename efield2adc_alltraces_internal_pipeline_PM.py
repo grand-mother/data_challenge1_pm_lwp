@@ -18,8 +18,10 @@ def main():
 
     pipeline = \
         {
-            # Preparation function - run before the files/events loops
-            "prep_func": {"type": "prep", "kwargs": {"PM_files_path": "PM_functions/PM_files"}, "module": "PM_functions"},
+            # Preparation function - run before the files loop
+            "prefileloop_call": {"type": "prefileloop_call", "kwargs": {"PM_files_path": "PM_functions/PM_files"}, "module": "PM_functions"},
+            # Preevent loop functions - called once per file
+            "preevent_func": {"type": "preeventloop_call", "module": "PM_functions.preevent_func"},
             # Stuff below is repeated for every file and event
             # Read shower angles from the shower tree
             "read_angles": {"type": "call", "module": "electronic_chain", "kwargs": {"tree": "tshower"}},

@@ -18,8 +18,10 @@ def main():
 
     pipeline = \
         {
-            # Preparation function - run before the files/events loops
-            "prep_func": {"type": "prep", "kwargs": {"XDU_files_path": "XDU_electronic_chain/XDU_files"}, "module": "XDU_electronic_chain"},
+            # Preparation function - run before the files loop
+            "prefileloop_call": {"type": "prefileloop_call", "kwargs": {"XDU_files_path": "XDU_electronic_chain/XDU_files"}, "module": "XDU_electronic_chain"},
+            # Preevent loop functions - called once per file
+            "preevent_func": {"type": "preeventloop_call", "module": "XDU_electronic_chain.preevent_func"},
             # Stuff below is repeated for every file and event
             # Read shower angles from the shower tree
             "read_angles": {"type": "call", "module": "electronic_chain", "kwargs": {"tree": "tshower"}},
