@@ -3,10 +3,17 @@
 
 ### Prerequisites (necessary!):
 1. Please use the root_trees.py (`grand.io.root_trees`) from the latest `dev_io_root` branch of grandlib. If you can't get it, I can send you a zip and try to help you use it.
-2. Please download the necessary XDU files (antenna model, coefficients, etc.). 1 GB :(
+2. For PM pipeline, please download the necessary PM files (antenna model, coefficients, etc.). 300 MB :(
+   1. temporarily at: https://mega.nz/file/YZZXxQAZ#imMdiT8ficDi2XIMaHSu56ZzcuD61S0Uauj3pkUkX6o
+   2. unpack into `PM_functions` (so the structure is `data_challenge1_pm_lwp/PM_functions/PM_files`)
+
+      (execute `tar -xvzf PM_files.tar.gz` in `data_challenge1_pm_lwp/PM_functions`)
+3. For XDU pipeline, please download the necessary XDU files (antenna model, coefficients, etc.). 1 GB :(
    1. temporarily at: https://mega.nz/file/kFhDGTzK#UCuP_usSD4TxdxsmtbKSd_Z_1dP66MFFprrXIuJ6BdA
    2. unpack into `XDU_electronic_chain` (so the structure is `data_challenge1_pm_lwp/XDU_electronic_chain/XDU_files`)
-3. Please install yaml python module
+
+        (execute `tar -xvzf XDU_files.tar.gz` in `data_challenge1_pm_lwp/XDU_electronic_chain`)
+4. Please install yaml python module
    
    `pip install yaml` as root should do.
 
@@ -23,9 +30,11 @@
 The pipeline can be run in **several ways**:
 1. With **external pipeline config file** *(most universal)*:
   
-  * Executes the pipeline specified in XDU_pipeline.yaml file
+  * Executes the pipeline specified in PM_pipeline.yaml file
 
-     `rm -rf results; ./efield2adc_alltraces_external_pipeline.py data/*.root -p XDU_pipeline.yaml -od results`
+     `rm -rf results; ./efield2adc_alltraces_external_pipeline.py data/*.root -p PM_pipeline.yaml -od results`
+
+    (replace PM with XDU for XDU pipeline)
 
 2. With **internal pipeline config file**:
 
@@ -35,15 +44,21 @@ The pipeline can be run in **several ways**:
  
      `rm -rf results; ./efield2adc_alltraces_internal_pipeline_XDU.py data/*.root -od results/`
 
+    (replace XDU with PM for PM pipeline)
+
   * For full control:
   
     The script calls the pipeline specified programmatically (python code) in `XDU_electronic_chain/XDU_manual_pipeline.py`
 
        `rm -rf results; ./efield2adc_alltraces_XDU.py data/*.root -od results`
 
+    (replace XDU with PM for PM pipeline)
+
   * If trace by trace analysis is needed (much slower), also calls the pipeline specified in `XDU_electronic_chain/XDU_manual_pipeline.py`:
 
-       `rm -rf results; ./efield2adc_tracebytrace_XDU.py data/*.root -od results`  
+       `rm -rf results; ./efield2adc_tracebytrace_XDU.py data/*.root -od results`
+
+    (replace XDU with PM for PM pipeline)  
 
 As you probably guessed:
   1. First parameter is input file(s)
@@ -52,4 +67,4 @@ As you probably guessed:
   
 All command line parameters can be obtained with `--help` switch.
 
-Currently the two first options store voltage and ADC counts in separate files, while two last in same files. Can be modified.
+Currently, the two first options store voltage and ADC counts in separate files, while two last in same files. Can be modified.
