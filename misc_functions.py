@@ -29,3 +29,12 @@ def multiInterp2(x, xp, fp):
 	d = (x - xp[j]) / (xp[j + 1] - xp[j])
 	print("aaa", i, j, fp.shape, d.shape)
 	return (1 - d) * fp[i, j] + fp[i, j + 1] * d
+
+# Check if there are no trees with the same name in the same files
+def are_trees_unique(trees):
+	names_files = []
+	for tree in trees:
+		names_files.append((tree.tree_name, tree.file_name))
+
+	# Unique, if no repeating element in the names_files
+	return len(set(names_files)) == len(names_files)
