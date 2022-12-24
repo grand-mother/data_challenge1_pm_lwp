@@ -1,0 +1,53 @@
+prep_func:
+  type: prep
+  kwargs:
+    PM_files_path: PM_functions/PM_files
+  module: PM_functions
+read_angles:
+  type: call
+  module: electronic_chain
+  kwargs:
+    tree: tshower
+read_sampling_time:
+  type: call
+  module: electronic_chain
+  kwargs:
+    tree: trunefieldsimdata
+read_traces:
+  type: call
+  module: electronic_chain
+  kwargs:
+    tree: tefield
+adjust_traces:
+  type: call
+  module: electronic_chain
+efield2voltage_pm:
+  type: call
+  module: PM_functions
+generate_galacticnoise:
+  type: call
+  module: PM_functions.noisemodel
+galactic_noise:
+  type: add_randomized
+LNA_coefficient:
+  type: multiply
+cable_coefficient:
+  type: multiply
+filter_coefficient:
+  type: multiply
+restore_traces_length:
+  type: call
+  module: electronic_chain
+store_voltage:
+  type: store
+  tree_type: VoltageEventTree
+  filename_suffix: _voltage
+  copy_tefield: true
+voltage2adc:
+  type: call
+  module: XDU_electronic_chain
+store_adc:
+  type: store
+  tree_type: ADCEventTree
+  filename_suffix: _adc
+  copy_tefield: true

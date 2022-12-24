@@ -139,7 +139,7 @@ def adjust_traces(traces_t, sampling_time, **kwargs):
         # return np.array(ex_cut), np.array(ey_cut), np.array(ez_cut)
         return traces_t
 
-def multiply_traces(traces_f, multiplier, sampling_time = 0.5, **kwargs):
+def multiply_traces(traces_f, multiplier, sampling_time = 0.5, irfft=False, **kwargs):
     """Multiply traces in frequency domain, return in time and frequency domain"""
     # Frequency part
     traces_f *= multiplier
@@ -152,8 +152,12 @@ def multiply_traces(traces_f, multiplier, sampling_time = 0.5, **kwargs):
     f = np.arange(0, N) * f0  # frequency sequence
     f1 = f[0:int(N / 2) + 1]
 
-    # [V_t, _, _] = ifftget(v_new, N, f1, 2)
-    [traces_t, _, _] = ifftgetn(traces_f, N, f1, 2)
+    # If inverse real fourier transform requested
+    if irfft:
+        traces_t = np.fft.irfft(traces_f, n=N)
+    else:
+        # [V_t, _, _] = ifftget(v_new, N, f1, 2)
+        traces_t, _, _ = ifftgetn(traces_f, N, f1, 2)
 
     # Inside pipeline return - a dictionary
     if ec_config.in_pipeline:
@@ -162,7 +166,7 @@ def multiply_traces(traces_f, multiplier, sampling_time = 0.5, **kwargs):
     else:
         return traces_t, traces_f
 
-def add_traces(traces_t, addend, traces_f = None, sampling_time = 0.5, **kwargs):
+def add_traces(traces_t, addend, traces_f = None, sampling_time = 0.5, rfft=False, **kwargs):
     """Add addend to traces"""
     """addend is either a time array, or a list [addend_time, addend_frequency]"""
 
@@ -187,7 +191,11 @@ def add_traces(traces_t, addend, traces_f = None, sampling_time = 0.5, **kwargs)
         f = np.arange(0, N) * f0  # frequency sequence
         f1 = f[0:int(N / 2) + 1]
 
-        [traces_f, _, _] = fftgetn(traces_t, N, f1)
+        # If real fourier transform requested
+        if rfft:
+            traces_f = np.fft.rfft(traces_t)
+        else:
+            [traces_f, _, _] = fftgetn(traces_t, N, f1)
 
     # Inside pipeline return - a dictionary
     if ec_config.in_pipeline:
@@ -197,11 +205,11 @@ def add_traces(traces_t, addend, traces_f = None, sampling_time = 0.5, **kwargs)
         return traces_t, traces_f
 
 
-def add_traces_randomized(traces_t, addend, traces_f = None, sampling_time = 0.5, **kwargs):
+def add_traces_randomized(traces_t, addend, traces_f=None, sampling_time=0.5, rfft=False, **kwargs):
     """Add addend to traces, but randomly select/shuffle the addend"""
     """addend is either a time array, or a list [addend_time, addend_frequency]"""
 
-    if type(addend) == list:
+    if type(addend) == list or type(addend) == tuple:
         addend_t, addend_f = addend
     else:
         addend_t = addend
@@ -230,7 +238,11 @@ def add_traces_randomized(traces_t, addend, traces_f = None, sampling_time = 0.5
         f = np.arange(0, N) * f0  # frequency sequence
         f1 = f[0:int(N / 2) + 1]
 
-        [traces_f, _, _] = fftgetn(traces_t, N, f1)
+        # If real fourier transform requested
+        if rfft:
+            traces_f = np.fft.rfft(traces_t)
+        else:
+            [traces_f, _, _] = fftgetn(traces_t, N, f1)
 
     # Inside pipeline return - a dictionary
     if ec_config.in_pipeline:

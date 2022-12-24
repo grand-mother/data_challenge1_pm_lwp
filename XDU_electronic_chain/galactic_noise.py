@@ -20,11 +20,11 @@ def read_galactic_noise(GALAshowFile):
 # =========================================galacticnoise get=============================================
 # def gala(lst, N, f0, f1, M):
 
-def gala(du_count, sampling_rate = 0.5, lst = 18, **kwargs):
-    return real_gala(du_count, sampling_rate, lst)
+def gala(du_count, sampling_time=0.5, lst=18, **kwargs):
+    return real_gala(du_count, sampling_time, lst)
 
 @lru_cache(maxsize=1)
-def real_gala(du_count, sampling_rate = 0.5, lst = 18):
+def real_gala(du_count, sampling_time=0.5, lst=18):
     # This Python file uses the following encoding: utf-8
 
 
@@ -38,7 +38,7 @@ def real_gala(du_count, sampling_rate = 0.5, lst = 18):
 
     M = du_count
 
-    fs = 1 / sampling_rate * 1000  # sampling frequency, MHZ
+    fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
     N = math.ceil(fs)
     f0 = fs / N  # base frequency, Frequency resolution
     f = np.arange(0, N) * f0  # frequency sequence

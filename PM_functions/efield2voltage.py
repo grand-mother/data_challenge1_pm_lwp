@@ -1,40 +1,49 @@
+import electronic_chain.ec_config as ec_config
 import PM_functions.readantennamodel as an
+import PM_functions.config as PM_config
+import numpy as np
+from functools import lru_cache
 
-# def efield2voltage_pm(ex, exy, ez, Zenith, Azimuth, N, dt, freqs):
-def efield2voltage_pm(ex, ey, ez, Zenith, Azimuth, dt, antenna_model):
+@lru_cache(maxsize=1)
+def read_antenna_files():
+    print("0.1")
+    table_ewarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_EWarm_leff.npy")
+    print("0.2")
+    table_snarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_SNarm_leff.npy")
+    print("0.3")
+    table_zarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_Zarm_leff.npy")
+    print("1")
+
+    return table_ewarm_new, table_snarm_new, table_zarm_new
+
+def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwargs):
     """""Voltage calculation from E field traces - by Pragati Mitra
     Parameters:
-        Etrace_cut : time trace of E field : expected shape (3,N)
+        ex,ey,ez : time trace of E field for x,y,z
         Zenith: shower zenith in degree
         Azimuth: shower azimuth in degree
-        N: chopped length of the trace with frequency resolution 1 MHz (defin code- fs = 1 / dt * 1000  # sampling frequency, MHZ
-            N = math.ceil(fs))
         freqs: frequencies (real part)
     Returns:
         Voltage trace (time domain)
     """
 
-    fs = 1 / dt * 1000  # sampling frequency, MHZ
-    N = math.ceil(fs)
-    freqs = np.fft.rfftfreq(N, d=dt * 1e-9) / 1e6
+    Zenith, Azimuth = e_theta, e_phi
 
     ## read antenna response function Leff from files in theta, phi direction
+    table_ewarm_new, table_snarm_new, table_zarm_new = read_antenna_files()
 
-    print("0.1")
-    table_ewarm_new = an.get_tabulated('./antennamodel/GP300Antenna_EWarm_leff.npy')
-    print("0.2")
-    table_snarm_new = an.get_tabulated('./antennamodel/GP300Antenna_SNarm_leff.npy')
-    print("0.3")
-    table_zarm_new = an.get_tabulated('./antennamodel/GP300Antenna_Zarm_leff.npy')
-    print("1")
     # interpolated L_eff in 3 arms for given zenith,azimuth
 
+    N = traces_t.shape[-1]
+    dt = sampling_time
+
+    # The interpolations below take almost all the time in this function
     lt1, lp1 = an.get_interp(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt2, lp2 = an.get_interp(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt3, lp3 = an.get_interp(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt = np.array([lt1, lt2, lt3]).T
     lp = np.array([lp1, lp2, lp3]).T
-    print("2")
+
     def rotationmatrix(theta, phi):
         """
         Rotation Matrix
@@ -58,26 +67,54 @@ def efield2voltage_pm(ex, ey, ez, Zenith, Azimuth, dt, antenna_model):
         vec_out = np.matmul(rot_in, vec_in.T)
         return vec_out[:2]  # not interested in E_r, neglibible
 
-    Etrace_cut = np.array([ex, ey, ez])
+    Etrace_cut = traces_t
+    # Etrace_cut = np.array([ex, ey, ez])
 
     # Fold antenna response in and get Voc
 
     #################   elctric field trace theta phi and FFT ###########################################
-    E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
 
-    print("3")
+    # E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
+    # ToDo: figure out how to init regardless of dimensions without an if
+    if traces_t.ndim<3:
+        E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
+    else:
+        E_tp_t = np.zeros([traces_t.shape[0], N, 2])  # xyz to theta-phi
+
     for k in range(N):
-        E_tp_t[k] = xyz_thetaphi(Etrace_cut[:, k], Zenith, Azimuth)
+        if traces_t.ndim < 3:
+            E_tp_t[k] = xyz_thetaphi(Etrace_cut[:, k], Zenith, Azimuth)
+        # ToDo: figure out how to do without a loop
+        else:
+            E_tp_t[:,k] = np.array([xyz_thetaphi(Etrace_cut[i, :, k], Zenith, Azimuth) for i in range(traces_t.shape[0])])
 
-    E_tp_fft = np.array(np.fft.rfft(E_tp_t.T), dtype='complex')  # fft , shape(2,N)
-    # voltage calculation
+    # E_tp_fft = np.array(np.fft.rfft(E_tp_t.T), dtype='complex')  # fft , shape(2,N)
+    E_tp_fft = np.array(np.fft.rfft(np.moveaxis(E_tp_t, -2, -1)), dtype='complex')  # fft , shape(2,N)
+
     # ======Open circuit voltage of air shower=================
 
-    Voc_shower_complex = np.zeros([len(freqs), 3], dtype=complex)
+    # Voc_shower_complex = np.zeros([3,len(freqs)], dtype=complex)
+    #
+    # # Frequency domain signal after folding antenna response
+    # for p in range(3):
+    #     Voc_shower_complex[p] = lt[:, p] * E_tp_fft[0] + lp[:, p] * E_tp_fft[1]
 
-    # Frequency domain signal after folding antenna response
-    for p in range(3):
-        Voc_shower_complex[:, p] = lt[:, p] * E_tp_fft[0] + lp[:, p] * E_tp_fft[1]
-        Voc_shower_t = np.fft.irfft(Voc_shower_complex.T, n=N)  # (3,N)
+    Voc_shower_complex = np.moveaxis(lt * E_tp_fft[..., 0, :][..., np.newaxis] + lp * E_tp_fft[..., 0, :][..., np.newaxis], -2, -1)
+    # Voc_shower_complex = np.moveaxis(lt * E_tp_fft[0, ..., np.newaxis] + lp * E_tp_fft[1, ..., np.newaxis], 0, 1)
 
-    return np.moveaxis(Voc_shower_t, 0, 1), Voc_shower_complex
+
+    Voc_shower_t = np.fft.irfft(Voc_shower_complex, n=N)  # (3,N)
+
+    # Inside pipeline return - a dictionary
+    if ec_config.in_pipeline:
+        # return {"traces_t": Voc_shower_t, "traces_f": Voc_shower_complex}
+        return {"traces_t": Voc_shower_t, "traces_f": Voc_shower_complex}
+    # Outside pipeline return - raw values
+    else:
+        # return Voc_shower_t, Voc_shower_complex
+        return Voc_shower_t, Voc_shower_complex
+
+
+    #return np.moveaxis(Voc_shower_t, 0, 1), Voc_shower_complex
+    # return Voc_shower_t, Voc_shower_complex # returning n,3 to match with other stuff, should be changed later
+     

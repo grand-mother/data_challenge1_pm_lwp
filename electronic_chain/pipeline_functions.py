@@ -8,21 +8,6 @@ from electronic_chain.trace_functions import add_traces, multiply_traces, add_tr
 import grand.io.root_trees
 from grand.io.root_trees import *
 
-pipeline = \
-    {
-        "prep_func": {"type": "prep", "kwargs": {"XDU_files_path": "electronic_chain/XDU_electronic_chain/XDU_files"}, "module": "electronic_chain.XDU_electronic_chain"},
-        "read_traces": {"type": "call", "module": "electronic_chain", "kwargs": {"tree": "tefield"}},
-        "read_angles": {"type": "call", "module": "electronic_chain", "kwargs": {"tree": "tshower"}},
-        "adjust_traces": {"type": "call", "module": "electronic_chain"},
-        "efield2voltage": {"type": "call", "module": "electronic_chain.XDU_electronic_chain"},
-        "galactic_noise": {"type": "add_randomized", "module": "electronic_chain.XDU_electronic_chain.galactic_noise"},
-        "lna_coefficient": {"type": "multiply", "module": "electronic_chain.XDU_electronic_chain.LNA"},
-        "cable_coefficient": {"type": "multiply", "module": "electronic_chain.XDU_electronic_chain.filters"},
-        "filter_coefficient": {"type": "multiply", "module": "electronic_chain.XDU_electronic_chain.filters"},
-        "revert_traces_length": {"type": "call", "module": "electronic_chain", "store": {"type": "VoltageEventTree", "filename_suffix": "_voltage"}},
-        "voltage2adc": {"type": "call", "module": "electronic_chain.XDU_electronic_chain", "store": {"type": "ADCEventTree", "filename_suffix": "_adc"}}
-    }
-
 
 def store_traces(traces_t, tree, copy_tree=None):
     """Stores provided traces in the provided tree"""

@@ -33,7 +33,6 @@ def get_tabulated(filename):
     
     
 def get_interp(table,zenith,azimuth,dlength,dt):
-
     dtheta = table['theta'][1] -  table['theta'][0] # deg
     rt1 = (zenith - table['theta'][0]) / dtheta
     it0 = int(np.floor(rt1) % table['theta'].size)
@@ -52,7 +51,7 @@ def get_interp(table,zenith,azimuth,dlength,dt):
         ip1 = 0
     rp1 -= np.floor(rp1)
     rp0 = 1 - rp1
-    
+
     def fftfreq(n, dt):
             
             return np.fft.rfftfreq(n, dt)
@@ -72,13 +71,16 @@ def get_interp(table,zenith,azimuth,dlength,dt):
     
     x = fftfreq(dlength,dt)
     xp = table['frequency']  # frequency [Hz]
-    
+
+    # The interpolations below took almost all the time in this function
     ltr = interp(table['leff_theta'])  # LWP. m
     lta = interp(np.deg2rad(table['phase_theta']))  # LWP. rad
     lpr = interp(table['leff_phi'])  # LWP. m
     lpa = interp(np.deg2rad(table['phase_phi']))  # LWP. rad
+
     lt = ltr * np.exp(1j * lta)
     lp = lpr * np.exp(1j * lpa)
+
     return lt,lp
     
     
