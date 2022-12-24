@@ -2,6 +2,7 @@ import electronic_chain.ec_config as ec_config
 import PM_functions.readantennamodel as an
 import PM_functions.config as PM_config
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 from functools import lru_cache
 from misc_functions import time_passed
 
@@ -91,18 +92,16 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     #################   elctric field trace theta phi and FFT ###########################################
 
     # E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
-    # ToDo: figure out how to init regardless of dimensions without an if
+    # ToDo: Do the same stuff for 2D traces as for 3D traces array
     if traces_t.ndim<3:
         E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
+        for k in range(N):
+                E_tp_t[k] = xyz_thetaphi(Etrace_cut[:, k], Zenith, Azimuth)
     else:
-        E_tp_t = np.zeros([traces_t.shape[0], N, 2])  # xyz to theta-phi
-
-    for k in range(N):
-        if traces_t.ndim < 3:
-            E_tp_t[k] = xyz_thetaphi(Etrace_cut[:, k], Zenith, Azimuth)
-        # ToDo: figure out how to do without a loop
-        else:
-            E_tp_t[:,k] = np.array([xyz_thetaphi(Etrace_cut[i, :, k], Zenith, Azimuth) for i in range(traces_t.shape[0])])
+        rm = R.from_matrix(rotationmatrix(Zenith, Azimuth).T)
+        # rotation can be applied only on (x,3) arrays, so we have to do a lot of reshaping back and forth
+        ee = np.moveaxis(Etrace_cut, 1, 2)
+        E_tp_t = rm.apply(ee.reshape(-1, 3)).reshape(traces_t.shape[0], -1, 3)
 
     # E_tp_fft = np.array(np.fft.rfft(E_tp_t.T), dtype='complex')  # fft , shape(2,N)
     E_tp_fft = np.array(np.fft.rfft(np.moveaxis(E_tp_t, -2, -1)), dtype='complex')  # fft , shape(2,N)
@@ -117,7 +116,6 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
 
     Voc_shower_complex = np.moveaxis(lt * E_tp_fft[..., 0, :][..., np.newaxis] + lp * E_tp_fft[..., 0, :][..., np.newaxis], -2, -1)
     # Voc_shower_complex = np.moveaxis(lt * E_tp_fft[0, ..., np.newaxis] + lp * E_tp_fft[1, ..., np.newaxis], 0, 1)
-
 
     Voc_shower_t = np.fft.irfft(Voc_shower_complex, n=N)  # (3,N)
 
