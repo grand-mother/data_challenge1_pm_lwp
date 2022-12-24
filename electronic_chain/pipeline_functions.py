@@ -47,6 +47,11 @@ def execute_pipeline(pipeline, filelist, output_dir=""):
         # ToDo: This should not be up to a user, at least not in this ugly way
         grand.io.root_trees.grand_tree_list = []
 
+        # Remove the previous traces, if exist
+        if "traces_t" in var_dict:
+            del var_dict["traces_t"]
+            del var_dict["traces_f"]
+
         # Execute all the preeventloop_calls in the pipeline
         for (key,part) in pipeline.items():
             if part["type"]=="preeventloop_call":
