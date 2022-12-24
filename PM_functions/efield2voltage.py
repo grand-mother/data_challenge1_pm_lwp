@@ -3,16 +3,28 @@ import PM_functions.readantennamodel as an
 import PM_functions.config as PM_config
 import numpy as np
 from functools import lru_cache
+from misc_functions import time_passed
 
 @lru_cache(maxsize=1)
 def read_antenna_files():
-    print("0.1")
-    table_ewarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_EWarm_leff.npy")
-    print("0.2")
-    table_snarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_SNarm_leff.npy")
-    print("0.3")
-    table_zarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_Zarm_leff.npy")
-    print("1")
+    time_passed(True)
+    # print("0.1")
+    suffix = "_reshaped_float32.npy"
+    # suffix = "_reshaped_compressed_float32.npz"
+    table_ewarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_EWarm_leff{suffix}")
+    # print("0.2")
+    table_snarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_SNarm_leff{suffix}")
+    # print("0.3")
+    table_zarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_Zarm_leff{suffix}")
+    # print("1")
+    # # print("0.1")
+    # table_ewarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_EWarm_leff.npy")
+    # # print("0.2")
+    # table_snarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_SNarm_leff.npy")
+    # # print("0.3")
+    # table_zarm_new = an.get_tabulated(PM_config.PM_files_path + "/GP300Antenna_Zarm_leff.npy")
+    # # print("1")
+    print(time_passed())
 
     return table_ewarm_new, table_snarm_new, table_zarm_new
 
@@ -32,15 +44,19 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     ## read antenna response function Leff from files in theta, phi direction
     table_ewarm_new, table_snarm_new, table_zarm_new = read_antenna_files()
 
+    time_passed(True)
     # interpolated L_eff in 3 arms for given zenith,azimuth
 
     N = traces_t.shape[-1]
     dt = sampling_time
 
     # The interpolations below take almost all the time in this function
-    lt1, lp1 = an.get_interp(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    lt2, lp2 = an.get_interp(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    lt3, lp3 = an.get_interp(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    lt1, lp1 = an.get_interp_mod(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    lt2, lp2 = an.get_interp_mod(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    lt3, lp3 = an.get_interp_mod(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    # lt1, lp1 = an.get_interp(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    # lt2, lp2 = an.get_interp(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    # lt3, lp3 = an.get_interp(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt = np.array([lt1, lt2, lt3]).T
     lp = np.array([lp1, lp2, lp3]).T
 
@@ -104,6 +120,8 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
 
 
     Voc_shower_t = np.fft.irfft(Voc_shower_complex, n=N)  # (3,N)
+
+    print(time_passed())
 
     # Inside pipeline return - a dictionary
     if ec_config.in_pipeline:
