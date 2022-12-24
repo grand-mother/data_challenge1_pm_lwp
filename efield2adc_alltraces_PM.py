@@ -5,7 +5,7 @@ import grand.io.root_trees
 from grand.io.root_trees import *
 from electronic_chain import *
 from misc_functions import *
-from PM_functions.noisemodel import add_galacticnoise
+from PM_functions.noisemodel import generate_galacticnoise
 from PM_functions.LNA import LNA_get
 from PM_functions.filters import filter_get
 
@@ -81,7 +81,7 @@ def main():
             print("phi is:", e_phi, "degree", tshower.shower_zenith)
 
             # Read galactic noise coefficients
-            galactic_noise = add_galacticnoise(tefield.du_count, 18, sampling_time)
+            galactic_noise = generate_galacticnoise(tefield.du_count, sampling_time, 18)
 
             tvoltage.trace_x.clear()
             tvoltage.trace_y.clear()
@@ -101,9 +101,9 @@ def main():
             tvoltage.trace_y = all_traces_t[-2][:,1,:].astype(np.float32)
             tvoltage.trace_z = all_traces_t[-2][:,2,:].astype(np.float32)
 
-            tadc.trace_x = all_traces_t[-1][:,0,:].astype(np.float32)
-            tadc.trace_y = all_traces_t[-1][:,1,:].astype(np.float32)
-            tadc.trace_z = all_traces_t[-1][:,2,:].astype(np.float32)
+            tadc.trace_0 = all_traces_t[-1][:,0,:].astype(np.int16)
+            tadc.trace_1 = all_traces_t[-1][:,1,:].astype(np.int16)
+            tadc.trace_2 = all_traces_t[-1][:,2,:].astype(np.int16)
 
 
             print(time_passed())
