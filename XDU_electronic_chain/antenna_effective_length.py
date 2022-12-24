@@ -10,7 +10,7 @@ from functools import lru_cache
 def get_f_radiation(REfile):
     """Gets/calculates f_radiation needed by CEL()"""
     # Complex electric field 30-250MHz
-    REfile = config.XDU_files_path + "/Complex_RE.mat"
+    # REfile = config.XDU_files_path + "/Complex_RE.mat"
     RE = h5py.File(REfile, 'r')
     # Transposing takes very long
     RE_zb = np.transpose(RE['data_rE_ALL'])
