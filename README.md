@@ -85,30 +85,30 @@ A pipeline is a chain of functions that pass results and parameters from one to 
   4. After the event loop, write the file(s)
   
 There are several operation blocks of which the pipeline may consist. They can belong to the different levels of the program described above:
-  1. Pre-file loop call -- a function called before the files loop. Only one per pipeline, **necessary**. Defines initial variables, such as necessary files paths, etc.
+1. Pre-file loop call -- a function called before the files loop. Only one per pipeline, **necessary**. Defines initial variables, such as necessary files paths, etc.
      a. name: the name of the function to be called
      b. type: prefileloop_call
      c. kwargs: parameter_name: parameter_value pairs that are passed to the function
      d. module: Python module where the function is defined
      e. return: a dictionary with variable_name: variable_value to be passed to the following elements of the pipeline. Can be empty.
-  2. Pre-event loop call -- a function called before the events loop. Useful for initialising data common for all events in the file, like filters coefficient, etc., that are not common for all files (due to, for example, possible different time bin for each run)
+2. Pre-event loop call -- a function called before the events loop. Useful for initialising data common for all events in the file, like filters coefficient, etc., that are not common for all files (due to, for example, possible different time bin for each run)
      a. name: the name of the function to be called
      b. type: preeventloop_call
      c. the rest the same as in the prefile-loop call
-  3. Call -- a function called inside the events loop.
+3. Call -- a function called inside the events loop.
      a. name: the name of the function to be called
      b. type: call
      c. the rest the same as in the prefile-loop call
-  4. add -- adds (with addition ;) ) an array to the array of the traces passed between the block
+4. add -- adds (with addition ;) ) an array to the array of the traces passed between the block
      a. name: addend - the name of the array to be added (must already be in the dictionary passed between blocks)
      b. type: add
      c. remarks: if a pair of [time_domain, frequency_domain] arrays is given, both are used. If only time_domain array is given, the traces in frequency domain are computed after the addition with (r)fft and returned with time traces.
-  5. add_randomized -- like add, but shuffles the addend array on the first index, that is assumed to be the traces (antennas) numbers
-  6. multiply -- multiplies the array of traces by the specified array
+5. add_randomized -- like add, but shuffles the addend array on the first index, that is assumed to be the traces (antennas) numbers
+6. multiply -- multiplies the array of traces by the specified array
      a. name: multipland -- the name of the array by which the traces will be multiplied (must already be in the dictionary passed between blocks)
      b. type: multiply
      c. remarks: expects an array in frequency domain. Multiplies traces in frequency domain, then computes in time domain with i(r)fft
-  7. store -- stores the traces at this stage of pipeline to a tree
+7. store -- stores the traces at this stage of pipeline to a tree
      a. name: not used, so can be anything
      b. type: store
      c. tree_type: the type of the tree in which to store the traces, such as VoltageEventTree, ADCEventTree, or in some strange cases, EfieldEventTree
