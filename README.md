@@ -1,7 +1,7 @@
 # A contribution to the Data Challenge 1
-### by Pragati Mitra and Lech Wiktor Piotrowski
+*by Pragati Mitra and Lech Wiktor Piotrowski*
 
-### Prerequisites (necessary!):
+## Prerequisites (necessary!):
 1. Please use the root_trees.py (`grand.io.root_trees`) from the latest `dev_io_root` branch of grandlib. If you can't get it, I can send you a zip and try to help you use it.
 2. For PM pipeline, please download the necessary PM files (antenna model, coefficients, etc.). 300 MB :(
    1. temporarily at: https://mega.nz/file/YZZXxQAZ#imMdiT8ficDi2XIMaHSu56ZzcuD61S0Uauj3pkUkX6o
@@ -17,7 +17,8 @@
    
    `pip install yaml` as root should do.
 
-### Remarks:
+
+## Remarks:
 1. I assume that the source root files are in the `data_challenge1_pm_lwp/data/` subdirectory (but you can change, of course)
 2. I copied the data_challenge1 Coarse*.root files into `data_challenge1_pm_lwp/data/`
 3. I store into `results/` subdirectory (but you can change)
@@ -25,7 +26,7 @@
 5. I'll add an option to overwrite the files later
 6. If you want repeatable clean results, comment out the galactic noise addition
 
-### How to run ###
+## How to run ###
 
 The pipeline can be run in **several ways**:
 1. With **external pipeline config file** *(most universal)*:
