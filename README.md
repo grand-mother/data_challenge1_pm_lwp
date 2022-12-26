@@ -86,33 +86,33 @@ A pipeline is a chain of functions that pass results and parameters from one to 
   
 There are several operation blocks of which the pipeline may consist. They can belong to the different levels of the program described above:
 1. Pre-file loop call -- a function called before the files loop. Only one per pipeline, **necessary**. Defines initial variables, such as necessary files paths, etc.
-     a. name: the name of the function to be called
-     b. type: prefileloop_call
-     c. kwargs: parameter_name: parameter_value pairs that are passed to the function
-     d. module: Python module where the function is defined
-     e. return: a dictionary with variable_name: variable_value to be passed to the following elements of the pipeline. Can be empty.
+     1. *name*: the name of the function to be called
+     2. *type*: prefileloop_call
+     3. *kwargs*: parameter_name: parameter_value pairs that are passed to the function
+     4. *module*: Python module where the function is defined
+     5. *return*: a dictionary with variable_name: variable_value to be passed to the following elements of the pipeline. Can be empty.
 2. Pre-event loop call -- a function called before the events loop. Useful for initialising data common for all events in the file, like filters coefficient, etc., that are not common for all files (due to, for example, possible different time bin for each run)
-     a. name: the name of the function to be called
-     b. type: preeventloop_call
-     c. the rest the same as in the prefile-loop call
+     1. *name*: the name of the function to be called
+     2. *type*: preeventloop_call
+     3. the rest the same as in the prefile-loop call
 3. Call -- a function called inside the events loop.
-     a. name: the name of the function to be called
-     b. type: call
-     c. the rest the same as in the prefile-loop call
+     1. *name*: the name of the function to be called
+     2. *type*: call
+     3. the rest the same as in the prefile-loop call
 4. add -- adds (with addition ;) ) an array to the array of the traces passed between the block
-     a. name: addend - the name of the array to be added (must already be in the dictionary passed between blocks)
-     b. type: add
-     c. remarks: if a pair of [time_domain, frequency_domain] arrays is given, both are used. If only time_domain array is given, the traces in frequency domain are computed after the addition with (r)fft and returned with time traces.
+     1. *name*: addend - the name of the array to be added (must already be in the dictionary passed between blocks)
+     2. *type*: add
+     3. *remarks*: if a pair of [time_domain, frequency_domain] arrays is given, both are used. If only time_domain array is given, the traces in frequency domain are computed after the addition with (r)fft and returned with time traces.
 5. add_randomized -- like add, but shuffles the addend array on the first index, that is assumed to be the traces (antennas) numbers
 6. multiply -- multiplies the array of traces by the specified array
-     a. name: multipland -- the name of the array by which the traces will be multiplied (must already be in the dictionary passed between blocks)
-     b. type: multiply
-     c. remarks: expects an array in frequency domain. Multiplies traces in frequency domain, then computes in time domain with i(r)fft
+     1. *name*: multipland -- the name of the array by which the traces will be multiplied (must already be in the dictionary passed between blocks)
+     2. *type*: multiply
+     3. *remarks*: expects an array in frequency domain. Multiplies traces in frequency domain, then computes in time domain with i(r)fft
 7. store -- stores the traces at this stage of pipeline to a tree
-     a. name: not used, so can be anything
-     b. type: store
-     c. tree_type: the type of the tree in which to store the traces, such as VoltageEventTree, ADCEventTree, or in some strange cases, EfieldEventTree
-     d. filename_suffix: the suffix that is added to the file name with Efield traces to create the file name of the file in which these traces will be stored. For example, for suffix "_voltage" we get Coarse2.root -> Coarse2_voltage.root.
+     1. *name*: not used, so can be anything
+     2. *type*: store
+     3. *tree_type*: the type of the tree in which to store the traces, such as VoltageEventTree, ADCEventTree, or in some strange cases, EfieldEventTree
+     4. *filename_suffix*: the suffix that is added to the file name with Efield traces to create the file name of the file in which these traces will be stored. For example, for suffix "_voltage" we get Coarse2.root -> Coarse2_voltage.root.
   
 Upon request, other blocks could be added, for example draw, for drawing traces at a specific point of the pipeline, or print, for printing traces.
 
