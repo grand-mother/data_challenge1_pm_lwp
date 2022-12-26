@@ -35,7 +35,7 @@ def filter_get(freqs_tot, unit):
     res21_all = []
     ims21_all = []
     for p in range(3):
-        #  cable参数
+        #  cable
         # str_p = str(p + 1)
         cable_Address = PM_config.PM_files_path+"/cableparameter/cable.s2p"
         freq = np.loadtxt(cable_Address, usecols=0) / 1e6  # HZ to MHz

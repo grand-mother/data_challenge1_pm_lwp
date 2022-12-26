@@ -62,7 +62,7 @@ def real_cel(e_theta, e_phi, trace_length, sampling_time, unit=1):
 
     effective = max(f_radiation.shape[0], f_radiation.shape[1])
 
-    # 测试s1p
+    # s1p
     s11_complex = np.zeros((effective, 3), dtype=complex)  # 3 ports
     for p in range(3):
         str_p = str(p + 1)

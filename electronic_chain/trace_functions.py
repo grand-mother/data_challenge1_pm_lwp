@@ -78,11 +78,11 @@ def adjust_traces(traces_t, sampling_time, **kwargs):
 
     # % ----------------------output - ---------------------------------- %
     # % t:time sequence, unit:ns
-    # % E_shower_cut:Corresponding to the triple polarization component of the time series，unit:uv
+    # % E_shower_cut:Corresponding to the triple polarization component of the time series, unit:uv
     # % fs % sampling frequency, unit:MHZ
-    # % f0 % base frequency, Frequency resolution，unit:MHZ
-    # % f  % frequency sequence，unit:MHz
-    # % f1 % Unilateral spectrum frequency sequence，unit:MHz
+    # % f0 % base frequency, Frequency resolution, unit:MHZ
+    # % f  % frequency sequence, unit:MHz
+    # % f1 % Unilateral spectrum frequency sequence, unit:MHz
 
     original_trace_length = traces_t.shape[-1]
 

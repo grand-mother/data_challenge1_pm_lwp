@@ -30,7 +30,7 @@ def real_gala(du_count, sampling_time=0.5, lst=18):
 
     # = == == == == This program is used as a subroutine to complete the calculation and expansion of galactic noise == == == == =
     #  ----------------------input - ---------------------------------- %
-    # lst：Select the galactic noise LST at the LST moment
+    # lst: Select the galactic noise LST at the LST moment
     # N is the extended length
     # f0 is the frequency resolution, f1 is the frequency point of the unilateral spectrum
     # % ----------------------output - ---------------------------------- %
@@ -100,7 +100,7 @@ def gala_old(lst, N, f0, f1, M):
 
     # = == == == == This program is used as a subroutine to complete the calculation and expansion of galactic noise == == == == =
     #  ----------------------input - ---------------------------------- %
-    # lst：Select the galactic noise LST at the LST moment
+    # lst: Select the galactic noise LST at the LST moment
     # N is the extended length
     # f0 is the frequency resolution, f1 is the frequency point of the unilateral spectrum
     # % ----------------------output - ---------------------------------- %

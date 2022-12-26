@@ -39,7 +39,7 @@ def real_filter_get(sampling_time=0.5, unit=1):
     cable_Gama_complex = np.zeros((3, N), dtype=complex)  # 3 ports
     cable_s21_complex = np.zeros((3, N), dtype=complex)
     for p in range(3):
-        #  cable参数
+        #  cable
         # str_p = str(p + 1)
         cable_Address = config.XDU_files_path + "/cableparameter/cable.s2p"
         freq = np.loadtxt(cable_Address, usecols=0) / 1e6  # HZ to MHz
@@ -186,7 +186,7 @@ def filter_get_old(N, f0, unit):
     cable_Gama_complex = np.zeros((N, 3), dtype=complex)  # 3 ports
     cable_s21_complex = np.zeros((N, 3), dtype=complex)
     for p in range(3):
-        #  cable参数
+        #  cable
         # str_p = str(p + 1)
         cable_Address = config.XDU_files_path + "/cableparameter/cable.s2p"
         freq = np.loadtxt(cable_Address, usecols=0) / 1e6  # HZ to MHz
