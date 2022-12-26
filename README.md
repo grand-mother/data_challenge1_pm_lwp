@@ -69,3 +69,57 @@ As you probably guessed:
 All command line parameters can be obtained with `--help` switch.
 
 Currently, the two first options store voltage and ADC counts in separate files, while two last in same files. Can be modified.
+
+## How to define an external pipeline
+
+A pipeline is a chain of functions that pass results and parameters from one to another. In this case, we start with Efield traces and through a chain of operations want to arrive at ADC traces. That is what happens for one event. However, we can have multiple events in a file, and multiple files. Therefore, the execution of program is the following:
+
+  1. Initialise the program
+  2. Loop through the files
+    a. For each file, read trees, initialise stuff needed at a file level, etc.
+    b. Initialise an output file/files
+  3. Loop through events inside a file
+    a. Read the traces of the event
+    b. Convert the traces to Voltage and ADC
+    c. Fill the trees with traces
+  4. After the event loop, write the file(s)
+  
+There are several operation blocks of which the pipeline may consist. They can belong to the different levels of the program described above:
+  1. Pre-file loop call -- a function called before the files loop. Only one per pipeline, **necessary**. Defines initial variables, such as necessary files paths, etc.
+    a. name: the name of the function to be called
+    b. type: prefileloop_call
+    c. kwargs: parameter_name: parameter_value pairs that are passed to the function
+    d. module: Python module where the function is defined
+    e. return: a dictionary with variable_name: variable_value to be passed to the following elements of the pipeline. Can be empty.
+  2. Pre-event loop call -- a function called before the events loop. Useful for initialising data common for all events in the file, like filters coefficient, etc., that are not common for all files (due to, for example, possible different time bin for each run)
+    a. name: the name of the function to be called
+    b. type: preeventloop_call
+    c. the rest the same as in the prefile-loop call
+  3. Call -- a function called inside the events loop.
+    a. name: the name of the function to be called
+    b. type: call
+    c. the rest the same as in the prefile-loop call
+  4. add -- adds (with addition ;) ) an array to the array of the traces passed between the block
+    a. name: addend - the name of the array to be added (must already be in the dictionary passed between blocks)
+    b. type: add
+    c. remarks: if a pair of [time_domain, frequency_domain] arrays is given, both are used. If only time_domain array is given, the traces in frequency domain are computed after the addition with (r)fft and returned with time traces.
+  5. add_randomized -- like add, but shuffles the addend array on the first index, that is assumed to be the traces (antennas) numbers
+  6. multiply -- multiplies the array of traces by the specified array
+    a. name: multipland -- the name of the array by which the traces will be multiplied (must already be in the dictionary passed between blocks)
+    b. type: multiply
+    c. remarks: expects an array in frequency domain. Multiplies traces in frequency domain, then computes in time domain with i(r)fft
+  7. store -- stores the traces at this stage of pipeline to a tree
+    a. name: not used, so can be anything
+    b. type: store
+    c. tree_type: the type of the tree in which to store the traces, such as VoltageEventTree, ADCEventTree, or in some strange cases, EfieldEventTree
+    c. filename_suffix: the suffix that is added to the file name with Efield traces to create the file name of the file in which these traces will be stored. For example, for suffix "_voltage" we get Coarse2.root -> Coarse2_voltage.root.
+  
+Upon request, other blocks could be added, for example draw, for drawing traces at a specific point of the pipeline, or print, for printing traces.
+
+All the data exchanged in the pipeline is stored in one dictionary. Traces in both time and frequency domains, as well as all the necessary coefficients (arrays), etc., are given to each block inside this dictionary. Each block should return a dictionary with variables (coefficient, traces, etc.) that it wants to pass on. The pipeline takes care abour updating the general dictionary with returned dictionary, and passing the general dictionary to each block.
+
+The external pipeline files are stored in YAML format. For an example on how they should like, please look at PM_pipeline.yaml and XDU_pipeline.yaml. XDU pipeline does (rather unnecessarily) some stuff for each event, which PM pipeline does before each event loop - namely reading of the coefficients.
+
+## How to define an internal pipeline
+
+The logic is exactly the same as for the external pipeline. However, in this case, the whole pipeline is defined as a Python dictionary and this dictionary should be passed in your main function to "execute_pipeline()" function. An external YAML file can be translated to a Python dictionary, and that is exactly what happens when calling an external pipeline file (`yaml.safe_load("filename.yaml")`). Also, the python dictionary can be translated to a YAML file with a pyyaml call ( `yaml.safe_dump(pipeline_dict, sort_keys=False, stream=open("filename.yaml", "w")`).
