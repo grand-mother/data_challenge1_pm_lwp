@@ -32,7 +32,7 @@ def read_antenna_files():
 def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwargs):
     """""Voltage calculation from E field traces - by Pragati Mitra
     Parameters:
-        ex,ey,ez : time trace of E field for x,y,z
+        traces_t : time traces of E field for x,y,z, (:, 3, :)
         Zenith: shower zenith in degree
         Azimuth: shower azimuth in degree
         freqs: frequencies (real part)
@@ -55,9 +55,6 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     lt1, lp1 = an.get_interp_mod(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt2, lp2 = an.get_interp_mod(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt3, lp3 = an.get_interp_mod(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    # lt1, lp1 = an.get_interp(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    # lt2, lp2 = an.get_interp(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    # lt3, lp3 = an.get_interp(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt = np.array([lt1, lt2, lt3]).T
     lp = np.array([lp1, lp2, lp3]).T
 
@@ -115,7 +112,6 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     #     Voc_shower_complex[p] = lt[:, p] * E_tp_fft[0] + lp[:, p] * E_tp_fft[1]
 
     Voc_shower_complex = np.moveaxis(lt * E_tp_fft[..., 0, :][..., np.newaxis] + lp * E_tp_fft[..., 0, :][..., np.newaxis], -2, -1)
-    # Voc_shower_complex = np.moveaxis(lt * E_tp_fft[0, ..., np.newaxis] + lp * E_tp_fft[1, ..., np.newaxis], 0, 1)
 
     Voc_shower_t = np.fft.irfft(Voc_shower_complex, n=N)  # (3,N)
 
@@ -130,7 +126,3 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
         # return Voc_shower_t, Voc_shower_complex
         return Voc_shower_t, Voc_shower_complex
 
-
-    #return np.moveaxis(Voc_shower_t, 0, 1), Voc_shower_complex
-    # return Voc_shower_t, Voc_shower_complex # returning n,3 to match with other stuff, should be changed later
-     
