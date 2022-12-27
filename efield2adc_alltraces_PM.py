@@ -15,9 +15,10 @@ import PM_functions.config as PM_config
 
 
 def main():
-
+    # Tells other functions were to look for antenna length, coefficients, etc. files
     PM_config.PM_files_path = "PM_functions/PM_files"
 
+    # Parse the command line arguments
     clparser = argparse.ArgumentParser()
     clparser.add_argument("filename", nargs="+")
     clparser.add_argument("-os", "--output_file_suffix", default="_voltage_adc")
@@ -50,9 +51,12 @@ def main():
         # In this file antennas are misordered. This is the dictionary that gives ROOT file trace number for given trace file number
         # trace_file_to_root = {95: 62, 94: 95, 93: 42, 92: 19, 91: 21, 90: 63, 89: 14, 88: 41, 87: 0, 86: 45, 85: 54, 84: 22, 83: 20, 82: 7, 81: 69, 80: 77, 79: 68, 78: 81, 77: 30, 76: 76, 75: 17, 74: 3, 73: 18, 72: 32, 71: 53, 70: 55, 69: 4, 68: 90, 67: 82, 66: 40, 65: 12, 64: 93, 63: 13, 62: 38, 61: 44, 60: 84, 59: 15, 58: 70, 57: 58, 56: 75, 55: 78, 54: 23, 53: 8, 52: 34, 51: 29, 50: 9, 49: 37, 48: 59, 47: 79, 46: 16, 45: 83, 44: 86, 43: 47, 42: 36, 41: 92, 40: 51, 39: 66, 38: 49, 37: 31, 36: 57, 35: 6, 34: 50, 33: 61, 32: 56, 31: 89, 30: 48, 29: 65, 28: 67, 27: 64, 26: 71, 25: 28, 24: 52, 23: 27, 22: 25, 21: 91, 20: 35, 19: 85, 18: 33, 17: 87, 16: 24, 15: 88, 14: 46, 13: 39, 12: 73, 11: 72, 10: 5, 9: 94, 8: 26, 7: 43, 6: 11, 5: 60, 4: 80, 3: 74, 2: 10, 1: 1, 0: 2}
 
+        # File for storing the voltage traces
         tvoltage = VoltageEventTree(out_root_file)
+        # File for storing the ADC traces
         tadc = ADCEventTree(out_root_file)
 
+        # Stuff necessary for creating the coefficients
         sampling_time = trunefieldsimdata.t_bin_size
         fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
         N = math.ceil(fs)
@@ -64,14 +68,16 @@ def main():
         # Read cable and filter coefficient
         cable_coefficient, filter_coefficient = filter_get(freqs_tot, 1)
 
+        # Loop through all the events in the shower tree
         for i in range(tshower.get_entries()):
             tefield.get_entry(i)
             # A bug in root_trees? Get entry should not be necessary
             tshower.get_entry(i)
+            # Copy the tefield event contents that exist also in tvoltage and tadc
             tvoltage.copy_contents(tefield)
+            tadc.copy_contents(tefield)
 
-            # e_theta = float(list1[5])
-            # e_phi = float(list1[6])
+            # Convert the shower angles into ZHAireS convention
             e_theta = 180-tshower.shower_zenith
             e_phi = tshower.shower_azimuth-180
             if e_theta<0: e_theta=360-e_theta
@@ -80,36 +86,39 @@ def main():
             print("theta is:", e_theta, "degree", tshower.shower_azimuth)
             print("phi is:", e_phi, "degree", tshower.shower_zenith)
 
-            # Read galactic noise coefficients
+            # Read galactic noise coefficients - recreated for every event
             galactic_noise = generate_galacticnoise(tefield.du_count, sampling_time, 18)
 
-            tvoltage.trace_x.clear()
-            tvoltage.trace_y.clear()
-            tvoltage.trace_z.clear()
-
+            # Time benchmarking init
             time_passed(True)
 
+            # Stack the traces together for other functions
             traces_t = np.stack([tefield.trace_x, tefield.trace_y, tefield.trace_z], axis=-2)
 
             original_trace_length = traces_t.shape[-1]
 
-            # traces_t = adjust_traces(traces_t, Ts)
-
+            # Execute the manual pipeline on the traces. With return_all_traces=True it stores and returns all the traces throughout the pipeline steps
             all_traces_t, all_traces_f = manual_pipeline(traces_t, e_phi, e_theta, du_count=tefield.du_count, original_trace_length=original_trace_length, sampling_time=sampling_time, return_all_traces=True, galactic_noise_coefficient=galactic_noise, LNA_coefficient=LNA_coefficient, cable_coefficient=cable_coefficient, filter_coefficient=filter_coefficient)
 
+            # The last before last trace is the final voltage
+            # Store it in the tree
             tvoltage.trace_x = all_traces_t[-2][:,0,:].astype(np.float32)
             tvoltage.trace_y = all_traces_t[-2][:,1,:].astype(np.float32)
             tvoltage.trace_z = all_traces_t[-2][:,2,:].astype(np.float32)
 
+            # The last trace is the final ADC
+            # Store it in the tree
             tadc.trace_0 = all_traces_t[-1][:,0,:].astype(np.int16)
             tadc.trace_1 = all_traces_t[-1][:,1,:].astype(np.int16)
             tadc.trace_2 = all_traces_t[-1][:,2,:].astype(np.int16)
 
-
+            # Print how much time has passed since the time benchmarking init
             print(time_passed())
 
+            # Fill the trees with the event
             tvoltage.fill()
             tadc.fill()
+            # Write the trees to their files
             tvoltage.write()
             tadc.write()
             print("Wrote trees")

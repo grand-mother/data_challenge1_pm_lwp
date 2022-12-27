@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Created by Lech Wiktor Piotrowski
 
 import sys
 
@@ -9,13 +10,13 @@ import argparse
 
 def main():
 
+    # Parse the command line arguments
     clparser = argparse.ArgumentParser()
     clparser.add_argument("filename", nargs="+")
     clparser.add_argument("-od", "--output_dir", default="")
     clargs = clparser.parse_args()
 
-    # XDU_config.XDU_files_path = "electronic_chain/XDU_electronic_chain/XDU_files"
-
+    # Define the pipeline dictionary
     pipeline = \
         {
             # Preparation function - run before the files loop
@@ -31,20 +32,14 @@ def main():
             "read_traces": {"type": "call", "module": "electronic_chain", "kwargs": {"tree": "tefield"}},
             # Adjust traces sizes - XDU chain needs this stuff
             "adjust_traces": {"type": "call", "module": "electronic_chain"},
-            # Calculate effective length of antenna (needs angles, so for every event)
-            # "CEL": {"type": "call", "module": "XDU_electronic_chain.antenna_effective_length"},
             # Convert efield to voltage
             "efield2voltage_pm": {"type": "call", "module": "PM_functions"},
             # Readout/prepare galactic noise
             "generate_galacticnoise": {"type": "call", "module": "PM_functions.noisemodel"},
             # Add galactic noise
             "galactic_noise": {"type": "add_randomized"},
-            # Readout/prepare LNA coefficient
-            # "LNA_get": {"type": "call", "module": "XDU_electronic_chain.LNA"},
             # Add LNA noise
             "LNA_coefficient": {"type": "multiply"},
-            # Readout/prepare cable and filter coefficients
-            # "filter_get": {"type": "call", "module": "XDU_electronic_chain.filters"},
             # Add cable noise
             "cable_coefficient": {"type": "multiply"},
             # Add filter noise
@@ -59,8 +54,10 @@ def main():
             "store_adc": {"type": "store", "tree_type": "ADCEventTree", "filename_suffix": "_adc", "copy_tefield": True}
         }
 
+    # Execute the pipeline dictionary
     execute_pipeline(pipeline, clargs.filename, clargs.output_dir)
 
+    # Store the pipeline dictionary as a YAML file
     # yaml.safe_dump(pipeline, sort_keys=False, stream=open("PM_pipeline.yaml", "w"))
 
 

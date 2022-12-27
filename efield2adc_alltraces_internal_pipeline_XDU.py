@@ -1,21 +1,21 @@
 #!/usr/bin/python
-
-import sys
+# Created by Lech Wiktor Piotrowski
 
 from electronic_chain import execute_pipeline
 
 import yaml
 import argparse
 
+
 def main():
 
+    # Parse the command line arguments
     clparser = argparse.ArgumentParser()
     clparser.add_argument("filename", nargs="+")
     clparser.add_argument("-od", "--output_dir", default="")
     clargs = clparser.parse_args()
 
-    # XDU_config.XDU_files_path = "electronic_chain/XDU_electronic_chain/XDU_files"
-
+    # Define the pipeline dictionary
     pipeline = \
         {
             # Preparation function - run before the files loop
@@ -59,14 +59,11 @@ def main():
             "store_adc": {"type": "store", "tree_type": "ADCEventTree", "filename_suffix": "_adc", "copy_tefield": True}
         }
 
+    # Execute the pipeline dictionary
     execute_pipeline(pipeline, clargs.filename, clargs.output_dir)
 
-    # # res = yaml.dump(pipeline, sort_keys=False)
+    # Store the pipeline dictionary as a YAML file
     # yaml.safe_dump(pipeline, sort_keys=False, stream=open("XDU_pipeline.yaml", "w"))
-    # # print(res)
-    # res = yaml.safe_load(stream=open("aaa.cfg", "r"))
-    # # print(globals())
-    # print(globals()[res["voltage2adc"]["store"]["type"]])
 
 
 if __name__ == '__main__':
