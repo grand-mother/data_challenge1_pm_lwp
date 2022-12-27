@@ -10,8 +10,6 @@ from misc_functions import time_passed
 
 # The main function defining the Efield -> ADC conversion pipeline
 def manual_pipeline(traces_t, phi, theta, du_count, original_trace_length, sampling_time=0.5, return_all_traces=True):
-    # !!!!!!!!!!!!!!!!!!!!!!! Make antenna model pluggable!!!!!!!!!
-
     all_traces_t = []
     all_traces_f = []
 
