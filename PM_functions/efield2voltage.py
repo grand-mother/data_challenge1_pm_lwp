@@ -81,23 +81,19 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
         vec_out = np.matmul(rot_in, vec_in.T)
         return vec_out[:2]  # not interested in E_r, neglibible
 
-    Etrace_cut = traces_t
-    # Etrace_cut = np.array([ex, ey, ez])
-
     # Fold antenna response in and get Voc
 
     #################   elctric field trace theta phi and FFT ###########################################
 
-    # E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
     # ToDo: Do the same stuff for 2D traces as for 3D traces array
     if traces_t.ndim<3:
         E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
         for k in range(N):
-                E_tp_t[k] = xyz_thetaphi(Etrace_cut[:, k], Zenith, Azimuth)
+                E_tp_t[k] = xyz_thetaphi(traces_t[:, k], Zenith, Azimuth)
     else:
         rm = R.from_matrix(rotationmatrix(Zenith, Azimuth).T)
         # rotation can be applied only on (x,3) arrays, so we have to do a lot of reshaping back and forth
-        ee = np.moveaxis(Etrace_cut, 1, 2)
+        ee = np.moveaxis(traces_t, 1, 2)
         E_tp_t = rm.apply(ee.reshape(-1, 3)).reshape(traces_t.shape[0], -1, 3)
 
     # E_tp_fft = np.array(np.fft.rfft(E_tp_t.T), dtype='complex')  # fft , shape(2,N)
@@ -111,7 +107,7 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     # for p in range(3):
     #     Voc_shower_complex[p] = lt[:, p] * E_tp_fft[0] + lp[:, p] * E_tp_fft[1]
 
-    Voc_shower_complex = np.moveaxis(lt * E_tp_fft[..., 0, :][..., np.newaxis] + lp * E_tp_fft[..., 0, :][..., np.newaxis], -2, -1)
+    Voc_shower_complex = np.moveaxis(lt * E_tp_fft[..., 0, :][..., np.newaxis] + lp * E_tp_fft[..., 1, :][..., np.newaxis], -2, -1)
 
     Voc_shower_t = np.fft.irfft(Voc_shower_complex, n=N)  # (3,N)
 
