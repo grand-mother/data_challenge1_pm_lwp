@@ -82,9 +82,6 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
         return vec_out[:2]  # not interested in E_r, neglibible
 
     # Fold antenna response in and get Voc
-
-    #################   elctric field trace theta phi and FFT ###########################################
-
     # ToDo: Do the same stuff for 2D traces as for 3D traces array
     if traces_t.ndim<3:
         E_tp_t = np.zeros([N, 2])  # xyz to theta-phi
@@ -94,18 +91,11 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
         rm = R.from_matrix(rotationmatrix(Zenith, Azimuth).T)
         # rotation can be applied only on (x,3) arrays, so we have to do a lot of reshaping back and forth
         ee = np.moveaxis(traces_t, 1, 2)
-        E_tp_t = rm.apply(ee.reshape(-1, 3)).reshape(traces_t.shape[0], -1, 3)
+        E_tp_t = rm.apply(ee.reshape(-1, 3)).reshape((traces_t.shape[0], -1, 3))
 
-    # E_tp_fft = np.array(np.fft.rfft(E_tp_t.T), dtype='complex')  # fft , shape(2,N)
     E_tp_fft = np.array(np.fft.rfft(np.moveaxis(E_tp_t, -2, -1)), dtype='complex')  # fft , shape(2,N)
 
     # ======Open circuit voltage of air shower=================
-
-    # Voc_shower_complex = np.zeros([3,len(freqs)], dtype=complex)
-    #
-    # # Frequency domain signal after folding antenna response
-    # for p in range(3):
-    #     Voc_shower_complex[p] = lt[:, p] * E_tp_fft[0] + lp[:, p] * E_tp_fft[1]
 
     Voc_shower_complex = np.moveaxis(lt * E_tp_fft[..., 0, :][..., np.newaxis] + lp * E_tp_fft[..., 1, :][..., np.newaxis], -2, -1)
 
