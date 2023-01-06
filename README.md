@@ -15,7 +15,7 @@
         (execute `tar -xvzf XDU_files.tar.gz` in `data_challenge1_pm_lwp/XDU_electronic_chain`)
 4. Please install yaml python module
    
-   `pip install yaml` as root should do.
+   `pip install pyyaml` as root should do.
 
 
 ## Remarks:
