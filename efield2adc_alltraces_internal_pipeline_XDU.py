@@ -3,8 +3,8 @@
 
 from electronic_chain import execute_pipeline
 
-import yaml
 import argparse
+import numpy as np
 
 
 def main():
@@ -13,6 +13,7 @@ def main():
     clparser = argparse.ArgumentParser()
     clparser.add_argument("filename", nargs="+")
     clparser.add_argument("-od", "--output_dir", default="")
+    clparser.add_argument("-se", "--seed", default=None)
     clargs = clparser.parse_args()
 
     # Define the pipeline dictionary
@@ -59,10 +60,15 @@ def main():
             "store_adc": {"type": "store", "tree_type": "ADCEventTree", "filename_suffix": "_adc", "copy_tefield": True}
         }
 
+    # Set the random seed if requested on command line (useful to avoid differences between calls due to changing galactic noise)
+    if clargs.seed is not None:
+        np.random.seed(int(clargs.seed))
+
     # Execute the pipeline dictionary
     execute_pipeline(pipeline, clargs.filename, clargs.output_dir)
 
     # Store the pipeline dictionary as a YAML file
+    # import yaml
     # yaml.safe_dump(pipeline, sort_keys=False, stream=open("XDU_pipeline.yaml", "w"))
 
 
