@@ -4,7 +4,7 @@
 ## Prerequisites (necessary!):
 1. Please use the root_trees.py (`grand.io.root_trees`) from the latest `dev_io_root` branch of grandlib. If you can't get it, I can send you a zip and try to help you use it.
 2. For PM pipeline, please download the necessary PM files (antenna model, coefficients, etc.). 300 MB :(
-   1. temporarily at: https://mega.nz/file/YZZXxQAZ#imMdiT8ficDi2XIMaHSu56ZzcuD61S0Uauj3pkUkX6o
+   1. temporarily at: https://mega.nz/file/4A53WCLB#XzzFYmijgIwZbp-NlTWxg-fvVt5Xg921EKH0i8mnwaE
    2. unpack into `PM_functions` (so the structure is `data_challenge1_pm_lwp/PM_functions/PM_files`)
 
       (execute `tar -xvzf PM_files.tar.gz` in `data_challenge1_pm_lwp/PM_functions`)
