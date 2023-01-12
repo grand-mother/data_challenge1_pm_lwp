@@ -24,7 +24,7 @@ def read_antenna_files(old=False):
 
     return table_ewarm_new, table_snarm_new, table_zarm_new
 
-def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, old=True, **kwargs):
+def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, old=False, **kwargs):
     """""Voltage calculation from E field traces - by Pragati Mitra
     Parameters:
         traces_t : time traces of E field for x,y,z, (:, 3, :)
