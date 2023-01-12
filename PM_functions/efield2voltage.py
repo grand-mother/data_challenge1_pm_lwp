@@ -7,18 +7,24 @@ from functools import lru_cache
 from misc_functions import time_passed
 
 @lru_cache(maxsize=1)
-def read_antenna_files():
+def read_antenna_files(old=False):
     time_passed(True)
-    suffix = "_reshaped_float32.npy"
-    # suffix = "_reshaped_compressed_float32.npz"
-    table_ewarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_EWarm_leff{suffix}")
-    table_snarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_SNarm_leff{suffix}")
-    table_zarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_Zarm_leff{suffix}")
+    if old:
+        suffix = ".npy"
+        table_ewarm_new = an.get_tabulated(PM_config.PM_files_path + f"/GP300Antenna_EWarm_leff{suffix}")
+        table_snarm_new = an.get_tabulated(PM_config.PM_files_path + f"/GP300Antenna_SNarm_leff{suffix}")
+        table_zarm_new = an.get_tabulated(PM_config.PM_files_path + f"/GP300Antenna_Zarm_leff{suffix}")
+    else:
+        suffix = "_reshaped_float32.npy"
+        # suffix = "_reshaped_compressed_float32.npz"
+        table_ewarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_EWarm_leff{suffix}")
+        table_snarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_SNarm_leff{suffix}")
+        table_zarm_new = an.get_tabulated_mod(PM_config.PM_files_path + f"/GP300Antenna_Zarm_leff{suffix}")
     print(time_passed())
 
     return table_ewarm_new, table_snarm_new, table_zarm_new
 
-def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwargs):
+def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, old=True, **kwargs):
     """""Voltage calculation from E field traces - by Pragati Mitra
     Parameters:
         traces_t : time traces of E field for x,y,z, (:, 3, :)
@@ -32,7 +38,7 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     Zenith, Azimuth = e_theta, e_phi
 
     ## read antenna response function Leff from files in theta, phi direction
-    table_ewarm_new, table_snarm_new, table_zarm_new = read_antenna_files()
+    table_ewarm_new, table_snarm_new, table_zarm_new = read_antenna_files(old=old)
 
     time_passed(True)
     # interpolated L_eff in 3 arms for given zenith,azimuth
@@ -41,9 +47,14 @@ def efield2voltage_pm(traces_t, e_theta, e_phi, freqs, sampling_time=0.5, **kwar
     dt = sampling_time
 
     # The interpolations below take almost all the time in this function
-    lt1, lp1 = an.get_interp_mod(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    lt2, lp2 = an.get_interp_mod(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
-    lt3, lp3 = an.get_interp_mod(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    if old:
+        lt1, lp1 = an.get_interp(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
+        lt2, lp2 = an.get_interp(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
+        lt3, lp3 = an.get_interp(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
+    else:
+        lt1, lp1 = an.get_interp_mod(table_snarm_new, Zenith, Azimuth, N, dt * 1e-9)
+        lt2, lp2 = an.get_interp_mod(table_ewarm_new, Zenith, Azimuth, N, dt * 1e-9)
+        lt3, lp3 = an.get_interp_mod(table_zarm_new, Zenith, Azimuth, N, dt * 1e-9)
     lt = np.array([lt1, lt2, lt3]).T
     lp = np.array([lp1, lp2, lp3]).T
 
