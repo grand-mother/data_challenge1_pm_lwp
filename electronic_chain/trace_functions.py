@@ -256,22 +256,21 @@ def restore_traces_length(traces_t, trace_length, original_trace_length, **kwarg
 
     # X coordinates of original_trace_length number of points through the (current) trace_length
     # x = np.tile(np.arange(original_trace_length)*(trace_length-1)/(original_trace_length-1), (traces_t.shape[0], 1))
-    x = np.arange(original_trace_length)*(trace_length-1)/(original_trace_length-1)
-    xp = np.arange(trace_length)
+    # x = np.arange(original_trace_length)*(trace_length-1)/(original_trace_length-1)
+    # xp = np.arange(trace_length)
+    #
+    # # Slow, but works ;)
+    # if traces_t.ndim>2:
+    #     tx = np.array([np.interp(x, xp, traces_t[i,0]) for i in range(traces_t.shape[0])])
+    #     ty = np.array([np.interp(x, xp, traces_t[i,1]) for i in range(traces_t.shape[0])])
+    #     tz = np.array([np.interp(x, xp, traces_t[i,2]) for i in range(traces_t.shape[0])])
+    # else:
+    #     tx = np.array(np.interp(x, xp, traces_t[0]))
+    #     ty = np.array(np.interp(x, xp, traces_t[0]))
+    #     tz = np.array(np.interp(x, xp, traces_t[0]))
 
-    # print(multiInterp2(x, xp, traces_t[:,0]).shape)
-
-    # Slow, but works ;)
-    if traces_t.ndim>2:
-        tx = np.array([np.interp(x, xp, traces_t[i,0]) for i in range(traces_t.shape[0])])
-        ty = np.array([np.interp(x, xp, traces_t[i,1]) for i in range(traces_t.shape[0])])
-        tz = np.array([np.interp(x, xp, traces_t[i,2]) for i in range(traces_t.shape[0])])
-    else:
-        tx = np.array(np.interp(x, xp, traces_t[0]))
-        ty = np.array(np.interp(x, xp, traces_t[0]))
-        tz = np.array(np.interp(x, xp, traces_t[0]))
-
-    traces_t = np.stack([tx, ty, tz], axis=-2)
+    # Only the original part of the trace length contains interesting information
+    traces_t = traces_t[..., :original_trace_length]
 
     # Inside pipeline return - a dictionary
     if ec_config.in_pipeline:
