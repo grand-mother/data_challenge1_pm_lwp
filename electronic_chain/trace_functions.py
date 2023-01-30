@@ -268,6 +268,8 @@ def restore_traces_length(traces_t, trace_length, original_trace_length, **kwarg
     #     tx = np.array(np.interp(x, xp, traces_t[0]))
     #     ty = np.array(np.interp(x, xp, traces_t[0]))
     #     tz = np.array(np.interp(x, xp, traces_t[0]))
+    #
+    # traces_t = np.stack([tx, ty, tz], axis=-2)
 
     # Only the original part of the trace length contains interesting information
     traces_t = traces_t[..., :original_trace_length]
