@@ -20,10 +20,11 @@ def read_galactic_noise(GALAshowFile):
     return GALAvoltage, GALAfreq
 
 def generate_galacticnoise(du_count, sampling_time=0.5, lst=18, **kwargs):
-    return real_generate_galacticnoise(du_count, sampling_time, lst)
+    trace_len = kwargs["traces_t"].shape[-1]
+    return real_generate_galacticnoise(du_count, trace_len, sampling_time, lst)
 
 @lru_cache(maxsize=1)
-def real_generate_galacticnoise(du_count, sampling_time=0.5, lst=18):
+def real_generate_galacticnoise(du_count, trace_len, sampling_time=0.5, lst=18):
     """
     Calculates galactic noise in Volatge for 3 antenna arms / antenna
     
@@ -44,7 +45,8 @@ def real_generate_galacticnoise(du_count, sampling_time=0.5, lst=18):
     GALAfreq = np.array(GALAfreq).flatten()
 
     fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
-    N = math.ceil(fs)
+    # N = math.ceil(fs)
+    N = trace_len
     freqs = np.fft.rfftfreq(N, d=sampling_time * 1e-9) / 1e6  # MHz
 
     amp_interp = get_interpolation(freqs, GALAfreq, V_amplitude.T, f_start, f_end) #(3,n)

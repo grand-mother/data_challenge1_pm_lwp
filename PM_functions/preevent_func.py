@@ -60,10 +60,22 @@ def preevent_func(pipeline, in_root_file, output_dir, **kwargs):
 
     ret_dict["output_trees"] = output_trees
 
+    # Get the time bin size
     trunefieldsimdata.get_entry(0)
     sampling_time = trunefieldsimdata.t_bin_size
-    fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
-    N = math.ceil(fs)
+
+    # Adjust traces function in pipeline extends the trace length to 2000
+    if "adjust_traces" in pipeline:
+        # fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
+        # N = math.ceil(fs)
+        trace_length = 2000
+    else:
+        # Get the traces length (assuming it is constant for all events)
+        tefield.get_entry(0)
+        trace_length = np.array(tefield.trace_x).shape[-1]
+
+    N = trace_length
+
     freqs_tot = np.fft.rfftfreq(N, d=sampling_time * 1e-9) / 1e6  # MHz
 
     ret_dict["sampling_time"] = sampling_time

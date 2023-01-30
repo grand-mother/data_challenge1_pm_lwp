@@ -147,7 +147,8 @@ def multiply_traces(traces_f, multiplier, sampling_time = 0.5, irfft=False, **kw
     # Time part
     Ts = sampling_time
     fs = 1 / Ts * 1000  # sampling frequency, MHZ
-    N = math.ceil(fs)
+    # N = math.ceil(fs)
+    N=traces_f.shape[-1]*2+1
     f0 = fs / N  # base frequency, Frequency resolution
     f = np.arange(0, N) * f0  # frequency sequence
     f1 = f[0:int(N / 2) + 1]
@@ -186,7 +187,8 @@ def add_traces(traces_t, addend, traces_f = None, sampling_time = 0.5, rfft=Fals
     else:
         # Calculate the frequency trace with fft
         fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
-        N = math.ceil(fs)
+        # N = math.ceil(fs)
+        N = traces_f.shape[-1] * 2 + 1
         f0 = fs / N  # base frequency, Frequency resolution
         f = np.arange(0, N) * f0  # frequency sequence
         f1 = f[0:int(N / 2) + 1]
@@ -233,7 +235,8 @@ def add_traces_randomized(traces_t, addend, traces_f=None, sampling_time=0.5, rf
     else:
         # Calculate the frequency trace with fft
         fs = 1 / sampling_time * 1000  # sampling frequency, MHZ
-        N = math.ceil(fs)
+        # N = math.ceil(fs)
+        N = traces_f.shape[-1] * 2 + 1
         f0 = fs / N  # base frequency, Frequency resolution
         f = np.arange(0, N) * f0  # frequency sequence
         f1 = f[0:int(N / 2) + 1]
